@@ -19,11 +19,18 @@ public class AuthController {
         this.authService = authService;
     }
 
-    @PostMapping("/register")
-    public ResponseEntity<User> register(@RequestBody AuthDTO.RegisterUser request) {
+    @PostMapping("/signup")
+    public ResponseEntity<AuthDTO.UserResponse> register(@RequestBody AuthDTO.AuthRequest request) {
         User newUser = authService.registerUser(request.email(), request.password());
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(newUser);
+        return ResponseEntity.status(HttpStatus.CREATED).body(AuthDTO.UserResponse.from(newUser));
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<AuthDTO.UserResponse> login(@RequestBody AuthDTO.AuthRequest request) {
+        User user = authService.authenticateUser(request.email(), request.password());
+
+        return ResponseEntity.status(HttpStatus.OK).body(AuthDTO.UserResponse.from(user));
     }
 
 }

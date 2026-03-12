@@ -27,4 +27,16 @@ public class AuthService {
         newUser.setSystemRole(RoleType.EMPLOYEE);
         return userRepository.save(newUser);
     }
+
+    // TODO: Handle validations in validators with clean HTTP Responses
+    public User authenticateUser(String email, String password) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User with email: " + email + " not found."));
+
+        if (!passwordEncoder.matches(password, user.getPassword())) {
+            throw new RuntimeException("Invalid credentials.");
+        }
+
+        return user;
+    }
 }

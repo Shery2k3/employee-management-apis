@@ -2,14 +2,16 @@ package com.example.employeemanagementrestapis.models;
 
 import com.example.employeemanagementrestapis.models.enums.EmployeeType;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDate;
 
 @Getter
 @Setter
+@Builder
 @Entity
+@NoArgsConstructor
+@AllArgsConstructor
 @Table(name = "employee")
 public class Employee {
 
