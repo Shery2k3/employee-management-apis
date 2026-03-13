@@ -17,6 +17,7 @@ public class UserController {
         this.userService = userService;
     }
 
+    // GET /api/user/
     @GetMapping("/")
     public List<User> getAllUsers() {
         return userService.getAllUsers();

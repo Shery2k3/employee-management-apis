@@ -18,11 +18,13 @@ public class EmployeeController {
         this.employeeService = employeeService;
     }
 
+    // GET /api/employee/
     @GetMapping("/")
     public List<Employee> getAllEmployees() {
         return employeeService.getAllEmployees();
     }
 
+    // POST /api/employee/onboard
     @PostMapping("/onboard")
     public ResponseEntity<EmployeeDTO.EmployeeResponse> onboardEmployee(@RequestBody EmployeeDTO.OnboardRequest request) {
         Employee employee = employeeService.onboardEmployee(request);

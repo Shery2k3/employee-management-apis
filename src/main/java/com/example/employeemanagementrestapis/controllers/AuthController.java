@@ -19,6 +19,7 @@ public class AuthController {
         this.authService = authService;
     }
 
+    // POST /api/auth/signup
     @PostMapping("/signup")
     public ResponseEntity<AuthDTO.UserResponse> register(@RequestBody AuthDTO.AuthRequest request) {
         User newUser = authService.registerUser(request.email(), request.password());
@@ -26,6 +27,7 @@ public class AuthController {
         return ResponseEntity.status(HttpStatus.CREATED).body(AuthDTO.UserResponse.from(newUser));
     }
 
+    // POST /api/auth/login
     @PostMapping("/login")
     public ResponseEntity<AuthDTO.UserResponse> login(@RequestBody AuthDTO.AuthRequest request) {
         User user = authService.authenticateUser(request.email(), request.password());
