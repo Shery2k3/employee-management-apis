@@ -1,5 +1,6 @@
 package com.example.employeemanagementrestapis.controllers;
 
+import com.example.employeemanagementrestapis.dtos.DocumentDTO;
 import com.example.employeemanagementrestapis.models.EmployeeDocument;
 import com.example.employeemanagementrestapis.models.enums.DocType;
 import com.example.employeemanagementrestapis.services.DocumentService;
@@ -23,7 +24,7 @@ public class DocumentController {
     }
 
     @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<String> uploadDocument(
+    public ResponseEntity<DocumentDTO.DocumentResponse> uploadDocument(
             @RequestParam("employeeId") Long employeeId,
             @RequestParam("file") MultipartFile file,
             @RequestParam("docType")DocType docType
@@ -31,6 +32,6 @@ public class DocumentController {
 
         EmployeeDocument savedDoc = documentService.uploadDocument(employeeId, file, docType);
 
-        return ResponseEntity.status(HttpStatus.OK).body("Successfully uploaded document. DB Record ID: " + savedDoc.getId());
+        return ResponseEntity.status(HttpStatus.OK).body(DocumentDTO.DocumentResponse.from(savedDoc));
     }
 }
