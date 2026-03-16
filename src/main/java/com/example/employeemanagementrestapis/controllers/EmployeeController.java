@@ -20,8 +20,12 @@ public class EmployeeController {
 
     // GET /api/employee/
     @GetMapping("/")
-    public List<Employee> getAllEmployees() {
-        return employeeService.getAllEmployees();
+    public ResponseEntity<List<EmployeeDTO.EmployeeResponse>> getAllEmployees() {
+        List<EmployeeDTO.EmployeeResponse> response = employeeService.getAllEmployees()
+                .stream()
+                .map(EmployeeDTO.EmployeeResponse::from)
+                .toList();
+        return ResponseEntity.ok(response);
     }
 
     // POST /api/employee/onboard

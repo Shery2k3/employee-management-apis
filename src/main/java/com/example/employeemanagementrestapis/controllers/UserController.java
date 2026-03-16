@@ -1,7 +1,10 @@
 package com.example.employeemanagementrestapis.controllers;
 
+import com.example.employeemanagementrestapis.dtos.AuthDTO;
+import com.example.employeemanagementrestapis.models.Employee;
 import com.example.employeemanagementrestapis.models.User;
 import com.example.employeemanagementrestapis.services.UserService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -19,8 +22,11 @@ public class UserController {
 
     // GET /api/user/
     @GetMapping("/")
-    public List<User> getAllUsers() {
-        return userService.getAllUsers();
+    public ResponseEntity<List<AuthDTO.UserResponse>> getAllUsers() {
+        List<AuthDTO.UserResponse> response = userService.getAllUsers()
+                .stream()
+                .map(AuthDTO.UserResponse::from)
+                .toList();
+        return ResponseEntity.ok(response);
     }
-
 }
