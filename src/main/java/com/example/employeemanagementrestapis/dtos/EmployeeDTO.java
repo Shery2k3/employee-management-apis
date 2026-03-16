@@ -15,7 +15,10 @@ public class EmployeeDTO {
         String phone,
         String address,
         LocalDate hireDate,
-        EmployeeType employmentType
+        EmployeeType employmentType,
+        String jobTitle,
+        Long departmentId,
+        Long managerId
     ) {}
 
     public record EmployeeResponse(
@@ -26,7 +29,12 @@ public class EmployeeDTO {
             String phone,
             String address,
             LocalDate hireDate,
-            EmployeeType employmentType
+            EmployeeType employmentType,
+            String jobTitle,
+            Long departmentId,
+            String departmentName,
+            Long managerId,
+            String managerName
     ) {
         public static EmployeeResponse from(Employee employee) {
             return new EmployeeResponse(
@@ -37,8 +45,19 @@ public class EmployeeDTO {
                     employee.getPhone(),
                     employee.getAddress(),
                     employee.getHireDate(),
-                    employee.getEmploymentType()
+                    employee.getEmploymentType(),
+                    employee.getJobTitle(),
+                    employee.getDepartment() != null ? employee.getDepartment().getId() : null,
+                    employee.getDepartment() != null ? employee.getDepartment().getName() : null,
+                    employee.getManager() != null ? employee.getManager().getId() : null,
+                    employee.getManager() != null
+                            ? employee.getManager().getFirstName() + " " + employee.getManager().getLastName()
+                            : null
             );
         }
     }
+
+    public record AssignManagerRequest(Long managerId) {}
+
+    public record AssignDepartmentRequest(Long departmentId) {}
 }

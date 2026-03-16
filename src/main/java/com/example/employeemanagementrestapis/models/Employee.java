@@ -5,6 +5,8 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Setter
@@ -22,6 +24,22 @@ public class Employee {
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     private User user;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "department_id", referencedColumnName = "id")
+    private Department department;
+
+    // Self-referencing FK to show managerial hierarchy, null means top of the chain of command
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "manager_id", referencedColumnName = "id")
+    private Employee manager;
+
+    // For reverse traversal later
+    @OneToMany(mappedBy = "manager", fetch = FetchType.LAZY)
+    private List<Employee> subordinates = new ArrayList<>();
+
+    @Column
+    private String jobTitle;
 
     @Column
     private String firstName;

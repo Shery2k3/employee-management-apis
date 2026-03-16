@@ -31,4 +31,32 @@ public class EmployeeController {
         return ResponseEntity.status(HttpStatus.CREATED).body(EmployeeDTO.EmployeeResponse.from(employee));
     }
 
+    // PATCH /api/employee/{id}/assign-department
+    @PatchMapping("/{id}/assign-department")
+    public ResponseEntity<EmployeeDTO.EmployeeResponse> assignDepartment(
+            @PathVariable Long id,
+            @RequestBody EmployeeDTO.AssignDepartmentRequest request) {
+        Employee employee = employeeService.assignDepartment(id, request.departmentId());
+        return ResponseEntity.ok(EmployeeDTO.EmployeeResponse.from(employee));
+    }
+
+    // PATCH /api/employee/{id}/assign-manager
+    @PatchMapping("/{id}/assign-manager")
+    public ResponseEntity<EmployeeDTO.EmployeeResponse> assignManager(
+            @PathVariable Long id,
+            @RequestBody EmployeeDTO.AssignManagerRequest request) {
+        Employee employee = employeeService.assignManager(id, request.managerId());
+        return ResponseEntity.ok(EmployeeDTO.EmployeeResponse.from(employee));
+    }
+
+    // GET /api/employee/{id}/subordinates
+    @GetMapping("/{id}/subordinates")
+    public ResponseEntity<List<EmployeeDTO.EmployeeResponse>> getSubordinates(@PathVariable Long id) {
+        List<EmployeeDTO.EmployeeResponse> response = employeeService.getSubordinates(id)
+                .stream()
+                .map(EmployeeDTO.EmployeeResponse::from)
+                .toList();
+        return ResponseEntity.ok(response);
+    }
+
 }

@@ -65,6 +65,7 @@ public class DocumentService {
         String uniqueFileName = UUID.randomUUID() + "_" + sanitizedFileName;
 
         try {
+            // Copying the file to our upload dir, while simultaneously creating an entry in the EmployeeDocument
             Path targetLocation = this.uploadDir.resolve(uniqueFileName);
             Files.copy(file.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
 
