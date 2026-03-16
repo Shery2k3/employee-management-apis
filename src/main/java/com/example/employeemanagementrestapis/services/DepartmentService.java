@@ -30,6 +30,6 @@ public class DepartmentService {
 
     public Department getDepartmentById(Long id) {
         return departmentRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Department doesn't exist."));
+                .orElseThrow(() -> new RuntimeException("Department not found with id: " + id));
     }
 }

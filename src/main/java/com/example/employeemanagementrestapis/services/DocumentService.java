@@ -23,7 +23,7 @@ import java.util.UUID;
 public class DocumentService {
     private final Path uploadDir = Paths.get("uploads/documents").toAbsolutePath().normalize();
 
-    private static final long MAX_FILE_SIZE = 10 * 1024 + 1024; // 10MB
+    private static final long MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
     private static final List<String> ALLOWED_MIME_TYPES = List.of(
             "application/pdf",
             "image/jpeg",
