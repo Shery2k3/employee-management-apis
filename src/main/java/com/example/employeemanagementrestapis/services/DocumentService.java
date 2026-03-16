@@ -5,6 +5,7 @@ import com.example.employeemanagementrestapis.models.EmployeeDocument;
 import com.example.employeemanagementrestapis.models.enums.DocType;
 import com.example.employeemanagementrestapis.repositories.EmployeeDocumentRepository;
 import com.example.employeemanagementrestapis.repositories.EmployeeRepository;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -16,12 +17,12 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
 
 @Service
 public class DocumentService {
-    private final Path uploadDir = Paths.get("uploads/documents").toAbsolutePath().normalize();
+    private final Path uploadDir;
+    private final String uploadDirConfig;
 
     private static final long MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
     private static final List<String> ALLOWED_MIME_TYPES = List.of(
@@ -36,16 +37,20 @@ public class DocumentService {
     private final EmployeeRepository employeeRepository;
     private final EmployeeDocumentRepository employeeDocumentRepository;
 
-    public DocumentService(EmployeeRepository employeeRepository, EmployeeDocumentRepository employeeDocumentRepository) {
+    public DocumentService(
+            EmployeeRepository employeeRepository,
+            EmployeeDocumentRepository employeeDocumentRepository,
+            @Value("${app.file.upload-dir}") String uploadDir) {
         this.employeeRepository = employeeRepository;
         this.employeeDocumentRepository = employeeDocumentRepository;
-
+        this.uploadDirConfig = uploadDir;
+        this.uploadDir = Paths.get(uploadDir).toAbsolutePath().normalize();
 
         // Creating the upload directory here if it doesnt exist
         try {
             Files.createDirectories(this.uploadDir);
         } catch (Exception e) {
-            throw new RuntimeException("Could not create the directory: " + uploadDir, e);
+            throw new RuntimeException("Could not create the directory: " + this.uploadDir, e);
         }
 
     }
@@ -59,7 +64,7 @@ public class DocumentService {
 
         validateFile(file);
 
-        String sanitizedFileName = StringUtils.cleanPath(Objects.requireNonNull(file.getOriginalFilename()));
+        String sanitizedFileName = sanitizeFileName(file.getOriginalFilename());
 
         // Using UUID with original filenames to avoid overwrites
         String uniqueFileName = UUID.randomUUID() + "_" + sanitizedFileName;
@@ -72,7 +77,7 @@ public class DocumentService {
             EmployeeDocument document = EmployeeDocument.builder().
                     employee(employee).
                     docType(docType)
-                    .fileUrl("uploads/documents/" + uniqueFileName)
+                    .fileUrl(this.uploadDirConfig + "/" + uniqueFileName)
                     .build();
 
             return employeeDocumentRepository.save(document);
