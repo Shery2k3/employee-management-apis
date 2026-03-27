@@ -28,8 +28,8 @@ public class DocumentController {
     public ResponseEntity<DocumentDTO.DocumentResponse> uploadDocument(
             @RequestParam("employeeId") Long employeeId,
             @RequestParam("file") MultipartFile file,
-            @RequestParam("docType")DocType docType
-            ) {
+            @RequestParam("docType") DocType docType
+    ) {
 
         EmployeeDocument savedDoc = documentService.uploadDocument(employeeId, file, docType);
 
@@ -52,7 +52,7 @@ public class DocumentController {
     // GET /api/document/{id}
     @GetMapping("/{id}")
     public ResponseEntity<DocumentDTO.DocumentResponse> getDocumentById(
-        @PathVariable UUID id
+            @PathVariable UUID id
     ) {
         EmployeeDocument doc = documentService.getDocumentById(id);
         return ResponseEntity.ok(DocumentDTO.DocumentResponse.from(doc));
