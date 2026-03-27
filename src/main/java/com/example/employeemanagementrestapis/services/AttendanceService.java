@@ -1,5 +1,7 @@
 package com.example.employeemanagementrestapis.services;
 
+import com.example.employeemanagementrestapis.exceptions.custom.BusinessLogicException;
+import com.example.employeemanagementrestapis.exceptions.custom.ResourceNotFoundException;
 import com.example.employeemanagementrestapis.models.AttendanceRecord;
 import com.example.employeemanagementrestapis.models.Employee;
 import com.example.employeemanagementrestapis.models.enums.AttendanceStatus;
@@ -31,11 +33,11 @@ public class AttendanceService {
         LocalDate today = LocalDate.now();
 
         if (attendanceRecordRepository.findByEmployeeIdAndDate(employeeId, today).isPresent()) {
-            throw new RuntimeException("Employee already checked in today");
+            throw new BusinessLogicException("Employee already checked in today");
         }
 
         Employee employee = employeeRepository.findById(employeeId)
-                .orElseThrow(() -> new RuntimeException("Employee not found with id: " + employeeId));
+                .orElseThrow(() -> new ResourceNotFoundException("Employee not found with id: " + employeeId));
 
         LocalDateTime now = LocalDateTime.now();
 
@@ -56,10 +58,10 @@ public class AttendanceService {
         LocalDate today = LocalDate.now();
 
         AttendanceRecord record = attendanceRecordRepository.findByEmployeeIdAndDate(employeeId, today)
-                .orElseThrow(() -> new RuntimeException("No check-in record found."));
+                .orElseThrow(() -> new ResourceNotFoundException("No check-in record found."));
 
         if (record.getCheckOutTime() != null) {
-            throw new RuntimeException("Employee already checked out today.");
+            throw new BusinessLogicException("Employee already checked out today.");
         }
 
         LocalDateTime now = LocalDateTime.now();

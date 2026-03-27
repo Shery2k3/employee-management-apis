@@ -1,6 +1,8 @@
 package com.example.employeemanagementrestapis.services;
 
 import com.example.employeemanagementrestapis.dtos.EmployeeDTO;
+import com.example.employeemanagementrestapis.exceptions.custom.BusinessLogicException;
+import com.example.employeemanagementrestapis.exceptions.custom.ResourceNotFoundException;
 import com.example.employeemanagementrestapis.models.Department;
 import com.example.employeemanagementrestapis.models.Employee;
 import com.example.employeemanagementrestapis.models.User;
@@ -40,13 +42,13 @@ public class EmployeeService {
         Department department = null;
         if (request.departmentId() != null) {
             department = departmentRepository.findById(request.departmentId())
-                    .orElseThrow(() -> new RuntimeException("Department not found with id: " + request.departmentId()));
+                    .orElseThrow(() -> new ResourceNotFoundException("Department not found with id: " + request.departmentId()));
         }
 
         Employee manager = null;
         if (request.managerId() != null) {
             manager = employeeRepository.findById(request.managerId())
-                    .orElseThrow(() -> new RuntimeException("Manager not found with id: " + request.managerId()));
+                    .orElseThrow(() -> new ResourceNotFoundException("Manager not found with id: " + request.managerId()));
         }
 
         Employee employee = Employee.builder()
@@ -68,13 +70,13 @@ public class EmployeeService {
     @Transactional
     public Employee assignDepartment(Long employeeId, Long departmentId) {
         Employee employee = employeeRepository.findById(employeeId)
-                .orElseThrow(() -> new RuntimeException("Employee not found with id: " + employeeId));
+                .orElseThrow(() -> new ResourceNotFoundException("Employee not found with id: " + employeeId));
 
         if (departmentId == null) {
             employee.setDepartment(null);
         } else {
             Department department = departmentRepository.findById(departmentId)
-                    .orElseThrow(() -> new RuntimeException("Department not found with id: " + departmentId));
+                    .orElseThrow(() -> new ResourceNotFoundException("Department not found with id: " + departmentId));
             employee.setDepartment(department);
         }
 
@@ -84,17 +86,17 @@ public class EmployeeService {
     @Transactional
     public Employee assignManager(Long employeeId, Long managerId) {
         Employee employee = employeeRepository.findById(employeeId)
-                .orElseThrow(() -> new RuntimeException("Employee not found with id: " + employeeId));
+                .orElseThrow(() -> new ResourceNotFoundException("Employee not found with id: " + employeeId));
 
         if (managerId == null) {
             employee.setManager(null);
         } else {
             if (employee.getId().equals(managerId)) {
-                throw new RuntimeException("Cannot assign an employee as their own manager.");
+                throw new BusinessLogicException("Cannot assign an employee as their own manager.");
             }
 
             Employee manager = employeeRepository.findById(managerId)
-                    .orElseThrow(() -> new RuntimeException("Manager not found with id: " + managerId));
+                    .orElseThrow(() -> new ResourceNotFoundException("Manager not found with id: " + managerId));
             employee.setManager(manager);
         }
 
@@ -103,7 +105,7 @@ public class EmployeeService {
 
     public List<Employee> getSubordinates(Long managerId) {
         if (!employeeRepository.existsById(managerId)) {
-            throw new RuntimeException("Employee not found with id: " + managerId);
+            throw new ResourceNotFoundException("Employee not found with id: " + managerId);
         }
         return employeeRepository.findByManagerId(managerId);
     }

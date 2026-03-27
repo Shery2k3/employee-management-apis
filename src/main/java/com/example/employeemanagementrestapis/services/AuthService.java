@@ -1,5 +1,7 @@
 package com.example.employeemanagementrestapis.services;
 
+import com.example.employeemanagementrestapis.exceptions.custom.BusinessLogicException;
+import com.example.employeemanagementrestapis.exceptions.custom.ResourceNotFoundException;
 import com.example.employeemanagementrestapis.models.User;
 import com.example.employeemanagementrestapis.models.enums.RoleType;
 import com.example.employeemanagementrestapis.repositories.UserRepository;
@@ -31,10 +33,10 @@ public class AuthService {
     // TODO: Handle validations in validators with clean HTTP Responses
     public User authenticateUser(String email, String password) {
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User with email: " + email + " not found."));
+                .orElseThrow(() -> new ResourceNotFoundException("User with email: " + email + " not found."));
 
         if (!passwordEncoder.matches(password, user.getPassword())) {
-            throw new RuntimeException("Invalid credentials.");
+            throw new BusinessLogicException("Invalid credentials.");
         }
 
         return user;

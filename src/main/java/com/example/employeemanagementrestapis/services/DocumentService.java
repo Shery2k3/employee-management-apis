@@ -1,5 +1,8 @@
 package com.example.employeemanagementrestapis.services;
 
+import com.example.employeemanagementrestapis.exceptions.custom.BusinessLogicException;
+import com.example.employeemanagementrestapis.exceptions.custom.FileStorageException;
+import com.example.employeemanagementrestapis.exceptions.custom.ResourceNotFoundException;
 import com.example.employeemanagementrestapis.models.Employee;
 import com.example.employeemanagementrestapis.models.EmployeeDocument;
 import com.example.employeemanagementrestapis.models.enums.DocType;
@@ -50,7 +53,7 @@ public class DocumentService {
         try {
             Files.createDirectories(this.uploadDir);
         } catch (Exception e) {
-            throw new RuntimeException("Could not create the directory: " + this.uploadDir, e);
+            throw new FileStorageException("Could not create the directory: " + this.uploadDir, e);
         }
 
     }
@@ -60,7 +63,7 @@ public class DocumentService {
 
         // Verify that employee actually exists
         Employee employee = employeeRepository.findById(employeeId)
-                .orElseThrow(() -> new RuntimeException("Employee not found with id: " + employeeId));
+                .orElseThrow(() -> new ResourceNotFoundException("Employee not found with id: " + employeeId));
 
         validateFile(file);
 
@@ -83,34 +86,34 @@ public class DocumentService {
             return employeeDocumentRepository.save(document);
 
         } catch (IOException e) {
-            throw new RuntimeException("Could not store file " + sanitizedFileName);
+            throw new FileStorageException("Could not store file " + sanitizedFileName);
 
         }
     }
 
     public List<EmployeeDocument> getDocumentsByEmployeeId(Long employeeId) {
         if (!employeeRepository.existsById(employeeId)) {
-            throw new RuntimeException("Employee not found with id: " + employeeId);
+            throw new ResourceNotFoundException("Employee not found with id: " + employeeId);
         }
         return employeeDocumentRepository.findByEmployeeId(employeeId);
     }
 
     public EmployeeDocument getDocumentById(UUID id) {
         return employeeDocumentRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Document not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Document not found with id: " + id));
     }
 
     @Transactional
     public void deleteDocument(UUID id) {
         EmployeeDocument document = employeeDocumentRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Document not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Document not found with id: " + id));
 
         // Delete physical file
         try {
             Path filePath = Paths.get(document.getFileUrl()).toAbsolutePath().normalize();
             Files.deleteIfExists(filePath);
         } catch (IOException e) {
-            throw new RuntimeException("Could not delete file for document: " + id, e);
+            throw new FileStorageException("Could not delete file for document: " + id, e);
         }
 
         employeeDocumentRepository.delete(document);
@@ -120,26 +123,26 @@ public class DocumentService {
 
     private void validateFile(MultipartFile file) {
         if (file == null || file.isEmpty()) {
-            throw new RuntimeException("File is empty or missing.");
+            throw new BusinessLogicException("File is empty or missing.");
         }
 
         if (file.getSize() > MAX_FILE_SIZE) {
-            throw new RuntimeException("File size exceeds the maximum limit of 10MB.");
+            throw new BusinessLogicException("File size exceeds the maximum limit of 10MB.");
         }
 
         String contentType = file.getContentType();
         if (contentType == null || !ALLOWED_MIME_TYPES.contains(contentType)) {
-            throw new RuntimeException("File type not allowed: " + contentType + ". Allowed Types: PDF, JPEG, PNG, DOC, DOCX");
+            throw new BusinessLogicException("File type not allowed: " + contentType + ". Allowed Types: PDF, JPEG, PNG, DOC, DOCX");
         }
     }
 
     private String sanitizeFileName(String originalFilename) {
         if (originalFilename == null || originalFilename.isBlank()) {
-            throw new RuntimeException("File has no name.");
+            throw new BusinessLogicException("File has no name.");
         }
         String sanitized = StringUtils.cleanPath(originalFilename);
         if (sanitized.contains("..")) {
-            throw new RuntimeException("Filename contains invalid path sequence.");
+            throw new BusinessLogicException("Filename contains invalid path sequence.");
         }
         return sanitized;
     }
