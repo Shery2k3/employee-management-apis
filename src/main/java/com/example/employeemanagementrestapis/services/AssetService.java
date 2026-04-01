@@ -1,0 +1,96 @@
+package com.example.employeemanagementrestapis.services;
+
+import com.example.employeemanagementrestapis.dtos.AssetDTO;
+import com.example.employeemanagementrestapis.exceptions.custom.BusinessLogicException;
+import com.example.employeemanagementrestapis.exceptions.custom.ResourceNotFoundException;
+import com.example.employeemanagementrestapis.models.Asset;
+import com.example.employeemanagementrestapis.models.Employee;
+import com.example.employeemanagementrestapis.models.enums.AssetStatus;
+import com.example.employeemanagementrestapis.repositories.AssetRepository;
+import com.example.employeemanagementrestapis.repositories.EmployeeRepository;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+
+@Service
+public class AssetService {
+    private final AssetRepository assetRepository;
+    private final EmployeeRepository employeeRepository;
+
+    public AssetService(AssetRepository assetRepository, EmployeeRepository employeeRepository) {
+        this.assetRepository = assetRepository;
+        this.employeeRepository = employeeRepository;
+    }
+
+    @Transactional
+    public AssetDTO.AssetResponse createAsset(AssetDTO.CreateRequest request) {
+        String assetTag = request.assetTag().trim();
+        if (assetRepository.existsByAssetTag(assetTag)) {
+            throw new BusinessLogicException("Asset with tag '" + assetTag + "' already exists.");
+        }
+
+        Employee assignedEmployee = resolveAssignedEmployee(request.assignedEmployeeId(), request.status());
+
+        Asset asset = Asset.builder()
+                .name(request.name().trim())
+                .assetTag(assetTag)
+                .status(request.status())
+                .assignedEmployee(assignedEmployee)
+                .build();
+
+        return AssetDTO.fromEntity(assetRepository.save(asset));
+    }
+
+    public List<AssetDTO.AssetResponse> getAllAssets() {
+        return assetRepository.findAll()
+                .stream()
+                .map(AssetDTO::fromEntity)
+                .toList();
+    }
+
+    public AssetDTO.AssetResponse getAssetById(Long id) {
+        Asset asset = assetRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Asset not found with id: " + id));
+        return AssetDTO.fromEntity(asset);
+    }
+
+    @Transactional
+    public AssetDTO.AssetResponse updateAsset(Long id, AssetDTO.UpdateRequest request) {
+        Asset asset = assetRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Asset not found with id: " + id));
+
+        Employee assignedEmployee = resolveAssignedEmployee(request.assignedEmployeeId(), request.status());
+
+        asset.setName(request.name().trim());
+        asset.setStatus(request.status());
+        asset.setAssignedEmployee(assignedEmployee);
+
+        return AssetDTO.fromEntity(assetRepository.save(asset));
+    }
+
+    @Transactional
+    public void deleteAsset(Long id) {
+        Asset asset = assetRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Asset not found with id: " + id));
+        assetRepository.delete(asset);
+    }
+
+    private Employee resolveAssignedEmployee(Long assignedEmployeeId, AssetStatus status) {
+        if (status == AssetStatus.ASSIGNED && assignedEmployeeId == null) {
+            throw new BusinessLogicException("assignedEmployeeId is required when status is ASSIGNED.");
+        }
+
+        if (status != AssetStatus.ASSIGNED && assignedEmployeeId != null) {
+            throw new BusinessLogicException("assignedEmployeeId can only be provided when status is ASSIGNED.");
+        }
+
+        if (assignedEmployeeId == null) {
+            return null;
+        }
+
+        return employeeRepository.findById(assignedEmployeeId)
+                .orElseThrow(() -> new ResourceNotFoundException("Employee not found with id: " + assignedEmployeeId));
+    }
+}
+

@@ -28,7 +28,7 @@ public class LeaveRequest {
     private Employee employee; // Applier
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "column_name", nullable = false)
+    @Column(name = "leave_type", nullable = false)
     private LeaveType leaveType;
 
     @Column(name = "start_date", nullable = false)
@@ -41,10 +41,11 @@ public class LeaveRequest {
     private String reason;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "leave_status", nullable = false)
     private LeaveStatus leaveStatus;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "employee_id", nullable = false)
+    @JoinColumn(name = "reviewer_id")
     private Employee reviewer; // Reviewer
 
     @Column

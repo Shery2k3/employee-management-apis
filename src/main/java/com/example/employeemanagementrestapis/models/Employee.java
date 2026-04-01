@@ -1,6 +1,7 @@
 package com.example.employeemanagementrestapis.models;
 
 import com.example.employeemanagementrestapis.models.enums.EmployeeType;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -23,6 +24,7 @@ public class Employee {
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", referencedColumnName = "id")
+    @JsonIgnore
     private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -32,10 +34,12 @@ public class Employee {
     // Self-referencing FK to show managerial hierarchy, null means top of the chain of command
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "manager_id", referencedColumnName = "id")
+    @JsonIgnore
     private Employee manager;
 
     // For reverse traversal later
     @OneToMany(mappedBy = "manager", fetch = FetchType.LAZY)
+    @JsonIgnore
     private List<Employee> subordinates = new ArrayList<>();
 
     @Column
