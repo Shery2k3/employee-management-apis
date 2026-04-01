@@ -1,61 +1,128 @@
 # Employee Management System
 
-Welcome to the Employee Management REST API project. This application serves as a comprehensive backend backend solution for managing daily human resources and administrative operations. Built completely with Java and the Spring Framework, it provides a stable foundation for organizational management.
+A REST API built with Java and Spring Boot for managing core human resources and administrative operations. The system
+consolidates personnel tracking, attendance, leave management, asset assignment, and document storage into a single
+unified backend.
 
-## Project Overview
+## Overview
 
-This system centralizes all essential company processes into one unified platform. It provides specialized services to track personnel, organize them into specific departments, and monitor their daily attendance. Additionally, it takes care of leave applications, secures document storage, and handles company property assignments. The application enforces role based access control to ensure that sensitive data remains secure and is only accessible by authorized personnel.
+Organizations rely on consistent, auditable records for their people and resources. This application addresses that need
+by providing a structured backend that enforces role based access control across all operations, ensuring that sensitive
+data is only accessible to authorized personnel.
 
-## Core Capabilities
+The codebase is written entirely in Java 17 using the Spring Framework, with Spring Data JPA handling all persistence
+logic. Maven manages the build lifecycle and dependency resolution.
 
-* Personnel Management: Register new staff members, update their personal details, and view the entire organizational structure.
-* Attendance Tracking: Accurately record daily entry and exit times to calculate working hours.
-* Time Off Processing: Staff members can submit applications for time off. Managers can subsequently review, approve, or reject these applications. The system automatically updates the available balances for each person.
-* Company Property Handling: Allocate laptops, mobile devices, and other equipment to individuals. The system tracks the condition and assignment history of every item.
-* Document Storage: Securely upload, store, and retrieve important files such as employment contracts or identification cards.
-* Secure Access: Protected endpoints that enforce strict authentication using reliable token mechanisms.
+## Features
 
-## How to Run
+**Personnel Management**
+Register new employees, maintain their personal and departmental records, and query the full organizational structure
+through a clean REST interface.
 
-To run this application locally, you will need Java installed on your computer. 
+**Attendance Tracking**
+Log daily entry and exit timestamps per employee and derive working hours from those records for payroll or compliance
+purposes.
 
-Open your terminal and navigate to the root directory of the project. You can use the Maven wrapper included in the project folder to compile the source code. Simply run the Maven install command to download dependencies and build the application. Once the build finishes successfully, you can launch the application by running the generated executable file or by starting the Main class directly from your integrated development environment. 
+**Leave Management**
+Employees submit time off requests through the API. Managers review and approve or reject those requests, and the system
+automatically adjusts each employee's leave balance accordingly.
 
-The application will start on the default web server port. You can configure your database connection and other environmental variables inside the application properties file located in the resources folder.
+**Asset Assignment**
+Track company owned equipment such as laptops and mobile devices. Each asset record captures its current condition, the
+employee it is assigned to, and its full assignment history.
 
-## Example API Routes
+**Document Storage**
+Upload and retrieve employee documents such as contracts or identification records, stored securely and scoped to the
+relevant employee.
 
-Once the application is running, you can interact with various endpoints. Below are a few examples of how to communicate with the application.
+**Authentication**
+All protected endpoints require a valid access token. Tokens are issued on login and must accompany subsequent requests.
+
+## Database
+
+The application uses H2 as its database engine. H2 is a lightweight, Java native relational database that runs inside
+the application process, removing the need for a separately installed database server during development or testing.
+
+By default, in memory databases are discarded when the application shuts down. This application sidesteps that
+limitation by configuring H2 in embedded file mode. Rather than storing data purely in RAM, H2 writes its data to a file
+on disk at a path specified in the application properties. The result is a database that behaves like any other
+relational engine from the application's perspective, starts up instantly with no external dependencies, and retains all
+data across restarts.
+
+To configure this, the `spring.datasource.url` property in `src/main/resources/application.properties` should follow
+this pattern:
+
+```
+spring.datasource.url=jdbc:h2:file:./data/emsdb
+spring.datasource.driver-class-name=org.h2.Driver
+spring.datasource.username=sa
+spring.datasource.password=
+spring.jpa.hibernate.ddl-auto=update
+```
+
+This tells H2 to persist all data to a file named `emsdb` in a `data` directory relative to the project root. The
+`ddl-auto=update` setting ensures the schema evolves alongside any entity changes without wiping existing records.
+
+The H2 web console can be enabled during development for direct SQL inspection:
+
+```
+spring.h2.console.enabled=true
+spring.h2.console.path=/h2-console
+```
+
+Once running, the console is accessible at `http://localhost:8080/h2-console`.
+
+## Running the Application
+
+Java 17 or higher must be installed. From the project root, build the application using the included Maven wrapper:
+
+```bash
+./mvnw clean install
+```
+
+Then start the application:
+
+```bash
+./mvnw spring-boot:run
+```
+
+The server starts on port 8080 by default. All configurable values including the database path, server port, and token
+secrets are managed through `src/main/resources/application.properties`.
+
+## API Reference
 
 ### Authentication
-* Endpoint: POST /api/auth/login
-* Purpose: Authenticates a user with their credentials and provides an access token for further requests.
+
+| Method | Endpoint          | Description                                      |
+|--------|-------------------|--------------------------------------------------|
+| POST   | `/api/auth/login` | Authenticates a user and returns an access token |
 
 ### Employees
-* Endpoint: GET /api/employees
-* Purpose: Retrieves a complete list of all registered staff members.
 
-* Endpoint: POST /api/employees
-* Purpose: Adds a new person to the system. You must provide their basic details such as name, email address, and their assigned department identifier in the request body.
+| Method | Endpoint         | Description                                |
+|--------|------------------|--------------------------------------------|
+| GET    | `/api/employees` | Returns a list of all registered employees |
+| POST   | `/api/employees` | Creates a new employee record              |
 
-### Company Assets
-* Endpoint: GET /api/assets
-* Purpose: Lists all equipment along with their current condition and the individual currently holding them.
+### Assets
 
-* Endpoint: POST /api/assets
-* Purpose: Registers a new piece of equipment into the company inventory.
+| Method | Endpoint      | Description                                             |
+|--------|---------------|---------------------------------------------------------|
+| GET    | `/api/assets` | Lists all assets with their current status and assignee |
+| POST   | `/api/assets` | Registers a new asset in the inventory                  |
 
-### Time Off
-* Endpoint: POST /api/leaves
-* Purpose: Submits a new application for days off covering a specific date range.
+### Leave Requests
 
-* Endpoint: PUT /api/leaves/2/approve
-* Purpose: Approves the specific time off request associated with the identifier of 2.
+| Method | Endpoint                   | Description                                  |
+|--------|----------------------------|----------------------------------------------|
+| POST   | `/api/leaves`              | Submits a new leave request                  |
+| PUT    | `/api/leaves/{id}/approve` | Approves the leave request with the given ID |
 
 ## Technology Stack
 
 * Java 17
-* Spring Web Framework
+* Spring Boot
+* Spring Web
 * Spring Data JPA
-* Relational Database Engine
-* Maven Dependency Management
+* H2 Database (file mode)
+* Maven
