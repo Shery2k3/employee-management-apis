@@ -20,8 +20,8 @@ public record EmployeeResponse(
         Long managerId,
         String managerName
 ) {
-    public static EmployeeDTO.EmployeeResponse from(Employee employee) {
-        return new EmployeeDTO.EmployeeResponse(
+    public static EmployeeResponse from(Employee employee) {
+        return new EmployeeResponse(
                 employee.getId(),
                 employee.getUser().getEmail(),
                 employee.getFirstName(),

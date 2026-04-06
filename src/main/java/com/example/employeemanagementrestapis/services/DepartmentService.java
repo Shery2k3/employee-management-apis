@@ -1,6 +1,5 @@
 package com.example.employeemanagementrestapis.services;
 
-import com.example.employeemanagementrestapis.dtos.DepartmentDTO;
 import com.example.employeemanagementrestapis.dtos.department.CreateDepartmentRequest;
 import com.example.employeemanagementrestapis.exceptions.custom.BusinessLogicException;
 import com.example.employeemanagementrestapis.exceptions.custom.ResourceNotFoundException;
@@ -18,7 +17,7 @@ public class DepartmentService {
         this.departmentRepository = departmentRepository;
     }
 
-    public Department createDepartment(@org.jetbrains.annotations.UnknownNullability CreateDepartmentRequest request) {
+    public Department createDepartment(CreateDepartmentRequest request) {
         if (departmentRepository.existsByName(request.name())) {
             throw new BusinessLogicException("Department with name '" + request.name() + "' already exists.");
         }
