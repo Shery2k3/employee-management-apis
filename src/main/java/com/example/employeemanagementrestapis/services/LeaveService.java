@@ -1,6 +1,8 @@
 package com.example.employeemanagementrestapis.services;
 
-import com.example.employeemanagementrestapis.dtos.LeaveDTO;
+import com.example.employeemanagementrestapis.dtos.leave.LeaveResponse;
+import com.example.employeemanagementrestapis.dtos.leave.ReviewLeaveRequest;
+import com.example.employeemanagementrestapis.dtos.leave.SubmitLeaveRequest;
 import com.example.employeemanagementrestapis.exceptions.custom.BusinessLogicException;
 import com.example.employeemanagementrestapis.exceptions.custom.ResourceNotFoundException;
 import com.example.employeemanagementrestapis.models.*;
@@ -33,7 +35,7 @@ public class LeaveService {
     }
 
     @Transactional
-    public LeaveDTO.LeaveResponse submitLeaveRequest(LeaveDTO.SubmitRequest request) {
+    public LeaveResponse submitLeaveRequest(SubmitLeaveRequest request) {
         if (request.endDate().isBefore(request.startDate())) {
             throw new BusinessLogicException("End date cannot be before start date.");
         }
@@ -75,11 +77,11 @@ public class LeaveService {
                 .leaveStatus(LeaveStatus.PENDING)
                 .build();
 
-        return LeaveDTO.fromEntity(leaveRequestRepository.save(leaveRequest));
+        return LeaveResponse.fromEntity(leaveRequestRepository.save(leaveRequest));
     }
 
     @Transactional
-    public LeaveDTO.LeaveResponse reviewLeaveRequest(Long requestId, LeaveDTO.ReviewRequest request) {
+    public LeaveResponse reviewLeaveRequest(Long requestId, ReviewLeaveRequest request) {
         LeaveRequest leaveRequest = leaveRequestRepository.findById(requestId)
                 .orElseThrow(() -> new ResourceNotFoundException("Leave request not found"));
 
@@ -114,13 +116,13 @@ public class LeaveService {
             leaveBalanceRepository.save(balance);
         }
 
-        return LeaveDTO.fromEntity(leaveRequestRepository.save(leaveRequest));
+        return LeaveResponse.fromEntity(leaveRequestRepository.save(leaveRequest));
     }
 
-    public List<LeaveDTO.LeaveResponse> getAllRequests() {
+    public List<LeaveResponse> getAllRequests() {
         return leaveRequestRepository.findAll()
                 .stream()
-                .map(LeaveDTO::fromEntity)
+                .map(LeaveResponse::fromEntity)
                 .toList();
     }
 }

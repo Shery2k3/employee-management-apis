@@ -1,6 +1,8 @@
 package com.example.employeemanagementrestapis.controllers;
 
-import com.example.employeemanagementrestapis.dtos.LeaveDTO;
+import com.example.employeemanagementrestapis.dtos.leave.LeaveResponse;
+import com.example.employeemanagementrestapis.dtos.leave.ReviewLeaveRequest;
+import com.example.employeemanagementrestapis.dtos.leave.SubmitLeaveRequest;
 import com.example.employeemanagementrestapis.services.LeaveService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -19,17 +21,17 @@ public class LeaveController {
     }
 
     @PostMapping("/submit")
-    public ResponseEntity<LeaveDTO.LeaveResponse> submitLeave(@Valid @RequestBody LeaveDTO.SubmitRequest request) {
+    public ResponseEntity<LeaveResponse> submitLeave(@Valid @RequestBody SubmitLeaveRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(leaveService.submitLeaveRequest(request));
     }
 
     @PatchMapping("/{id}/review")
-    public ResponseEntity<LeaveDTO.LeaveResponse> reviewLeave(@PathVariable Long id, @Valid @RequestBody LeaveDTO.ReviewRequest request) {
+    public ResponseEntity<LeaveResponse> reviewLeave(@PathVariable Long id, @Valid @RequestBody ReviewLeaveRequest request) {
         return ResponseEntity.ok(leaveService.reviewLeaveRequest(id, request));
     }
 
     @GetMapping("/calendar")
-    public ResponseEntity<List<LeaveDTO.LeaveResponse>> getTeamCalendar() {
+    public ResponseEntity<List<LeaveResponse>> getTeamCalendar() {
         return ResponseEntity.ok(leaveService.getAllRequests());
     }
 }

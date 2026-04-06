@@ -1,6 +1,6 @@
 package com.example.employeemanagementrestapis.services;
 
-import com.example.employeemanagementrestapis.dtos.EmployeeDTO;
+import com.example.employeemanagementrestapis.dtos.employee.OnboardRequest;
 import com.example.employeemanagementrestapis.exceptions.custom.BusinessLogicException;
 import com.example.employeemanagementrestapis.exceptions.custom.ResourceNotFoundException;
 import com.example.employeemanagementrestapis.models.Department;
@@ -34,7 +34,7 @@ public class EmployeeService {
     }
 
     @Transactional
-    public Employee onboardEmployee(EmployeeDTO.OnboardRequest request) {
+    public Employee onboardEmployee(OnboardRequest request) {
 
         // Insert into User table first
         User user = authService.registerUser(request.email(), request.password());

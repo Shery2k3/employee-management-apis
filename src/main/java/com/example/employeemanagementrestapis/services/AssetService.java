@@ -1,6 +1,8 @@
 package com.example.employeemanagementrestapis.services;
 
-import com.example.employeemanagementrestapis.dtos.AssetDTO;
+import com.example.employeemanagementrestapis.dtos.asset.AssetResponse;
+import com.example.employeemanagementrestapis.dtos.asset.CreateAssetRequest;
+import com.example.employeemanagementrestapis.dtos.asset.UpdateAssetRequest;
 import com.example.employeemanagementrestapis.exceptions.custom.BusinessLogicException;
 import com.example.employeemanagementrestapis.exceptions.custom.ResourceNotFoundException;
 import com.example.employeemanagementrestapis.models.Asset;
@@ -24,7 +26,7 @@ public class AssetService {
     }
 
     @Transactional
-    public AssetDTO.AssetResponse createAsset(AssetDTO.CreateRequest request) {
+    public AssetResponse createAsset(CreateAssetRequest request) {
         String assetTag = request.assetTag().trim();
         if (assetRepository.existsByAssetTag(assetTag)) {
             throw new BusinessLogicException("Asset with tag '" + assetTag + "' already exists.");
@@ -39,24 +41,24 @@ public class AssetService {
                 .assignedEmployee(assignedEmployee)
                 .build();
 
-        return AssetDTO.fromEntity(assetRepository.save(asset));
+        return AssetResponse.fromEntity(assetRepository.save(asset));
     }
 
-    public List<AssetDTO.AssetResponse> getAllAssets() {
+    public List<AssetResponse> getAllAssets() {
         return assetRepository.findAll()
                 .stream()
-                .map(AssetDTO::fromEntity)
+                .map(AssetResponse::fromEntity)
                 .toList();
     }
 
-    public AssetDTO.AssetResponse getAssetById(Long id) {
+    public AssetResponse getAssetById(Long id) {
         Asset asset = assetRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Asset not found with id: " + id));
-        return AssetDTO.fromEntity(asset);
+        return AssetResponse.fromEntity(asset);
     }
 
     @Transactional
-    public AssetDTO.AssetResponse updateAsset(Long id, AssetDTO.UpdateRequest request) {
+    public AssetResponse updateAsset(Long id, UpdateAssetRequest request) {
         Asset asset = assetRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Asset not found with id: " + id));
 
@@ -66,7 +68,7 @@ public class AssetService {
         asset.setStatus(request.status());
         asset.setAssignedEmployee(assignedEmployee);
 
-        return AssetDTO.fromEntity(assetRepository.save(asset));
+        return AssetResponse.fromEntity(assetRepository.save(asset));
     }
 
     @Transactional

@@ -1,6 +1,8 @@
 package com.example.employeemanagementrestapis.controllers;
 
-import com.example.employeemanagementrestapis.dtos.AssetDTO;
+import com.example.employeemanagementrestapis.dtos.asset.AssetResponse;
+import com.example.employeemanagementrestapis.dtos.asset.CreateAssetRequest;
+import com.example.employeemanagementrestapis.dtos.asset.UpdateAssetRequest;
 import com.example.employeemanagementrestapis.services.AssetService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -19,24 +21,24 @@ public class AssetController {
     }
 
     @PostMapping
-    public ResponseEntity<AssetDTO.AssetResponse> createAsset(@Valid @RequestBody AssetDTO.CreateRequest request) {
+    public ResponseEntity<AssetResponse> createAsset(@Valid @RequestBody CreateAssetRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(assetService.createAsset(request));
     }
 
     @GetMapping
-    public ResponseEntity<List<AssetDTO.AssetResponse>> getAllAssets() {
+    public ResponseEntity<List<AssetResponse>> getAllAssets() {
         return ResponseEntity.ok(assetService.getAllAssets());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<AssetDTO.AssetResponse> getAssetById(@PathVariable Long id) {
+    public ResponseEntity<AssetResponse> getAssetById(@PathVariable Long id) {
         return ResponseEntity.ok(assetService.getAssetById(id));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<AssetDTO.AssetResponse> updateAsset(
+    public ResponseEntity<AssetResponse> updateAsset(
             @PathVariable Long id,
-            @Valid @RequestBody AssetDTO.UpdateRequest request
+            @Valid @RequestBody UpdateAssetRequest request
     ) {
         return ResponseEntity.ok(assetService.updateAsset(id, request));
     }

@@ -1,6 +1,6 @@
 package com.example.employeemanagementrestapis.controllers;
 
-import com.example.employeemanagementrestapis.dtos.DocumentDTO;
+import com.example.employeemanagementrestapis.dtos.document.DocumentResponse;
 import com.example.employeemanagementrestapis.models.EmployeeDocument;
 import com.example.employeemanagementrestapis.models.enums.DocType;
 import com.example.employeemanagementrestapis.services.DocumentService;
@@ -25,7 +25,7 @@ public class DocumentController {
 
     // POST /api/document/upload
     @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<DocumentDTO.DocumentResponse> uploadDocument(
+    public ResponseEntity<DocumentResponse> uploadDocument(
             @RequestParam("employeeId") Long employeeId,
             @RequestParam("file") MultipartFile file,
             @RequestParam("docType") DocType docType
@@ -33,17 +33,17 @@ public class DocumentController {
 
         EmployeeDocument savedDoc = documentService.uploadDocument(employeeId, file, docType);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(DocumentDTO.DocumentResponse.from(savedDoc));
+        return ResponseEntity.status(HttpStatus.CREATED).body(DocumentResponse.from(savedDoc));
     }
 
     // GET /api/document/employee/{employeeId}
     @GetMapping("/employee/{employeeId}")
-    public ResponseEntity<List<DocumentDTO.DocumentResponse>> getDocumentsByEmployee(
+    public ResponseEntity<List<DocumentResponse>> getDocumentsByEmployee(
             @PathVariable Long employeeId
     ) {
-        List<DocumentDTO.DocumentResponse> docs = documentService.getDocumentsByEmployeeId(employeeId)
+        List<DocumentResponse> docs = documentService.getDocumentsByEmployeeId(employeeId)
                 .stream()
-                .map(DocumentDTO.DocumentResponse::from)
+                .map(DocumentResponse::from)
                 .toList();
 
         return ResponseEntity.ok(docs);
@@ -51,11 +51,11 @@ public class DocumentController {
 
     // GET /api/document/{id}
     @GetMapping("/{id}")
-    public ResponseEntity<DocumentDTO.DocumentResponse> getDocumentById(
+    public ResponseEntity<DocumentResponse> getDocumentById(
             @PathVariable UUID id
     ) {
         EmployeeDocument doc = documentService.getDocumentById(id);
-        return ResponseEntity.ok(DocumentDTO.DocumentResponse.from(doc));
+        return ResponseEntity.ok(DocumentResponse.from(doc));
     }
 
     // DELETE /api/document/{id}

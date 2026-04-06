@@ -1,7 +1,8 @@
 package com.example.employeemanagementrestapis.controllers;
 
-import com.example.employeemanagementrestapis.dtos.DepartmentDTO;
-import com.example.employeemanagementrestapis.dtos.EmployeeDTO;
+import com.example.employeemanagementrestapis.dtos.department.CreateDepartmentRequest;
+import com.example.employeemanagementrestapis.dtos.department.DepartmentResponse;
+import com.example.employeemanagementrestapis.dtos.employee.EmployeeResponse;
 import com.example.employeemanagementrestapis.models.Department;
 import com.example.employeemanagementrestapis.services.DepartmentService;
 import com.example.employeemanagementrestapis.services.EmployeeService;
@@ -24,19 +25,19 @@ public class DepartmentController {
 
     // POST /api/department/
     @PostMapping("/")
-    public ResponseEntity<DepartmentDTO.DepartmentResponse> createDepartment(
-            @RequestBody DepartmentDTO.CreateRequest request) {
+    public ResponseEntity<DepartmentResponse> createDepartment(
+            @RequestBody CreateDepartmentRequest request) {
 
         Department dept = departmentService.createDepartment(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(DepartmentDTO.DepartmentResponse.from(dept));
+        return ResponseEntity.status(HttpStatus.CREATED).body(DepartmentResponse.from(dept));
     }
 
     // GET /api/department/
     @GetMapping("/")
-    public ResponseEntity<List<DepartmentDTO.DepartmentResponse>> getAllDepartments() {
-        List<DepartmentDTO.DepartmentResponse> response = departmentService.getAllDepartments()
+    public ResponseEntity<List<DepartmentResponse>> getAllDepartments() {
+        List<DepartmentResponse> response = departmentService.getAllDepartments()
                 .stream()
-                .map(DepartmentDTO.DepartmentResponse::from)
+                .map(DepartmentResponse::from)
                 .toList();
 
         return ResponseEntity.ok(response);
@@ -44,11 +45,11 @@ public class DepartmentController {
 
     // GET /api/department/{id}/employees
     @GetMapping("/{id}/employees")
-    public ResponseEntity<List<EmployeeDTO.EmployeeResponse>> getEmployeesByDepartment(@PathVariable Long id) {
+    public ResponseEntity<List<EmployeeResponse>> getEmployeesByDepartment(@PathVariable Long id) {
         departmentService.getDepartmentById(id);
-        List<EmployeeDTO.EmployeeResponse> employees = employeeService.getEmployeesByDepartment(id)
+        List<EmployeeResponse> employees = employeeService.getEmployeesByDepartment(id)
                 .stream()
-                .map(EmployeeDTO.EmployeeResponse::from)
+                .map(EmployeeResponse::from)
                 .toList();
         return ResponseEntity.ok(employees);
     }
