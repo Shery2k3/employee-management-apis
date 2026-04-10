@@ -33,3 +33,7 @@ build/
 .vscode/
 /data/db.mv.db
 /src/main/java/com/example/employeemanagementrestapis/requirements.md
+/data/db.lock.db
+/data/db.trace.db
+/src/main/java/com/example/employeemanagementrestapis/todo.md
+/uploads/
