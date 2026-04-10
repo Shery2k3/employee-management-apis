@@ -1,18 +1,23 @@
 package com.example.employeemanagementrestapis.controllers;
 
+import com.example.employeemanagementrestapis.dtos.common.PagedResponse;
 import com.example.employeemanagementrestapis.dtos.leave.LeaveResponse;
 import com.example.employeemanagementrestapis.dtos.leave.ReviewLeaveRequest;
 import com.example.employeemanagementrestapis.dtos.leave.SubmitLeaveRequest;
 import com.example.employeemanagementrestapis.services.LeaveService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/leave")
+@Validated
 public class LeaveController {
     private final LeaveService leaveService;
 
@@ -31,7 +36,11 @@ public class LeaveController {
     }
 
     @GetMapping("/calendar")
-    public ResponseEntity<List<LeaveResponse>> getTeamCalendar() {
-        return ResponseEntity.ok(leaveService.getAllRequests());
+    public ResponseEntity<PagedResponse<LeaveResponse>> getTeamCalendar(
+            @RequestParam(defaultValue = "0") @Min(0) int page,
+            @RequestParam(defaultValue = "10") @Min(1) @Max(100) int size
+    ) {
+        Pageable pageable = PageRequest.of(page, size);
+        return ResponseEntity.ok(PagedResponse.fromPage(leaveService.getAllRequests(pageable)));
     }
 }

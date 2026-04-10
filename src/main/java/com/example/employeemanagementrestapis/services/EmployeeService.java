@@ -1,6 +1,7 @@
 package com.example.employeemanagementrestapis.services;
 
 import com.example.employeemanagementrestapis.dtos.employee.OnboardRequest;
+import com.example.employeemanagementrestapis.dtos.employee.EmployeeResponse;
 import com.example.employeemanagementrestapis.exceptions.custom.BusinessLogicException;
 import com.example.employeemanagementrestapis.exceptions.custom.ResourceNotFoundException;
 import com.example.employeemanagementrestapis.models.Department;
@@ -8,10 +9,10 @@ import com.example.employeemanagementrestapis.models.Employee;
 import com.example.employeemanagementrestapis.models.User;
 import com.example.employeemanagementrestapis.repositories.DepartmentRepository;
 import com.example.employeemanagementrestapis.repositories.EmployeeRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 @Service
 public class EmployeeService {
@@ -29,8 +30,9 @@ public class EmployeeService {
         return employeeRepository.save(employee);
     }
 
-    public List<Employee> getAllEmployees() {
-        return employeeRepository.findAll();
+    public Page<EmployeeResponse> getAllEmployees(Pageable pageable) {
+        return employeeRepository.findAll(pageable)
+                .map(EmployeeResponse::from);
     }
 
     @Transactional
@@ -103,15 +105,17 @@ public class EmployeeService {
         return employeeRepository.save(employee);
     }
 
-    public List<Employee> getSubordinates(Long managerId) {
+    public Page<EmployeeResponse> getSubordinates(Long managerId, Pageable pageable) {
         if (!employeeRepository.existsById(managerId)) {
             throw new ResourceNotFoundException("Employee not found with id: " + managerId);
         }
-        return employeeRepository.findByManagerId(managerId);
+        return employeeRepository.findByManagerId(managerId, pageable)
+                .map(EmployeeResponse::from);
     }
 
-    public List<Employee> getEmployeesByDepartment(Long departmentId) {
-        return employeeRepository.findByDepartmentId(departmentId);
+    public Page<EmployeeResponse> getEmployeesByDepartment(Long departmentId, Pageable pageable) {
+        return employeeRepository.findByDepartmentId(departmentId, pageable)
+                .map(EmployeeResponse::from);
     }
 
 }

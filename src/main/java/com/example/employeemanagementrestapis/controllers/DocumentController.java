@@ -1,21 +1,27 @@
 package com.example.employeemanagementrestapis.controllers;
 
+import com.example.employeemanagementrestapis.dtos.common.PagedResponse;
 import com.example.employeemanagementrestapis.dtos.document.DocumentResponse;
 import com.example.employeemanagementrestapis.models.EmployeeDocument;
 import com.example.employeemanagementrestapis.models.enums.DocType;
 import com.example.employeemanagementrestapis.services.DocumentService;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.List;
 import java.util.UUID;
 
 
 @RestController
 @RequestMapping("/api/document")
+@Validated
 public class DocumentController {
     private final DocumentService documentService;
 
@@ -38,15 +44,15 @@ public class DocumentController {
 
     // GET /api/document/employee/{employeeId}
     @GetMapping("/employee/{employeeId}")
-    public ResponseEntity<List<DocumentResponse>> getDocumentsByEmployee(
-            @PathVariable Long employeeId
+    public ResponseEntity<PagedResponse<DocumentResponse>> getDocumentsByEmployee(
+            @PathVariable Long employeeId,
+            @RequestParam(defaultValue = "0") @Min(0) int page,
+            @RequestParam(defaultValue = "10") @Min(1) @Max(100) int size
     ) {
-        List<DocumentResponse> docs = documentService.getDocumentsByEmployeeId(employeeId)
-                .stream()
-                .map(DocumentResponse::from)
-                .toList();
-
-        return ResponseEntity.ok(docs);
+        Pageable pageable = PageRequest.of(page, size);
+        return ResponseEntity.ok(PagedResponse.fromPage(
+                documentService.getDocumentsByEmployeeId(employeeId, pageable).map(DocumentResponse::from)
+        ));
     }
 
     // GET /api/document/{id}

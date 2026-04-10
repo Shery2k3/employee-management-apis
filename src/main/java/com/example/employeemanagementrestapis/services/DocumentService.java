@@ -9,6 +9,8 @@ import com.example.employeemanagementrestapis.models.enums.DocType;
 import com.example.employeemanagementrestapis.repositories.EmployeeDocumentRepository;
 import com.example.employeemanagementrestapis.repositories.EmployeeRepository;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -91,11 +93,11 @@ public class DocumentService {
         }
     }
 
-    public List<EmployeeDocument> getDocumentsByEmployeeId(Long employeeId) {
+    public Page<EmployeeDocument> getDocumentsByEmployeeId(Long employeeId, Pageable pageable) {
         if (!employeeRepository.existsById(employeeId)) {
             throw new ResourceNotFoundException("Employee not found with id: " + employeeId);
         }
-        return employeeDocumentRepository.findByEmployeeId(employeeId);
+        return employeeDocumentRepository.findByEmployeeId(employeeId, pageable);
     }
 
     public EmployeeDocument getDocumentById(UUID id) {

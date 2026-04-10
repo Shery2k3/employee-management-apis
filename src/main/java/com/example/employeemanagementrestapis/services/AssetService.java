@@ -10,10 +10,10 @@ import com.example.employeemanagementrestapis.models.Employee;
 import com.example.employeemanagementrestapis.models.enums.AssetStatus;
 import com.example.employeemanagementrestapis.repositories.AssetRepository;
 import com.example.employeemanagementrestapis.repositories.EmployeeRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 @Service
 public class AssetService {
@@ -44,11 +44,9 @@ public class AssetService {
         return AssetResponse.fromEntity(assetRepository.save(asset));
     }
 
-    public List<AssetResponse> getAllAssets() {
-        return assetRepository.findAll()
-                .stream()
-                .map(AssetResponse::fromEntity)
-                .toList();
+    public Page<AssetResponse> getAllAssets(Pageable pageable) {
+        return assetRepository.findAll(pageable)
+            .map(AssetResponse::fromEntity);
     }
 
     public AssetResponse getAssetById(Long id) {

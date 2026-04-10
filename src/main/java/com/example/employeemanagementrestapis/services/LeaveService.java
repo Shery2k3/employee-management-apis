@@ -8,11 +8,12 @@ import com.example.employeemanagementrestapis.exceptions.custom.ResourceNotFound
 import com.example.employeemanagementrestapis.models.*;
 import com.example.employeemanagementrestapis.models.enums.LeaveStatus;
 import com.example.employeemanagementrestapis.repositories.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.temporal.ChronoUnit;
-import java.util.List;
 import java.util.Set;
 
 @Service
@@ -119,10 +120,8 @@ public class LeaveService {
         return LeaveResponse.fromEntity(leaveRequestRepository.save(leaveRequest));
     }
 
-    public List<LeaveResponse> getAllRequests() {
-        return leaveRequestRepository.findAll()
-                .stream()
-                .map(LeaveResponse::fromEntity)
-                .toList();
+    public Page<LeaveResponse> getAllRequests(Pageable pageable) {
+        return leaveRequestRepository.findAll(pageable)
+                .map(LeaveResponse::fromEntity);
     }
 }

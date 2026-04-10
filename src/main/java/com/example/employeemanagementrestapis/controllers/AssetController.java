@@ -3,16 +3,21 @@ package com.example.employeemanagementrestapis.controllers;
 import com.example.employeemanagementrestapis.dtos.asset.AssetResponse;
 import com.example.employeemanagementrestapis.dtos.asset.CreateAssetRequest;
 import com.example.employeemanagementrestapis.dtos.asset.UpdateAssetRequest;
+import com.example.employeemanagementrestapis.dtos.common.PagedResponse;
 import com.example.employeemanagementrestapis.services.AssetService;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/assets")
+@Validated
 public class AssetController {
     private final AssetService assetService;
 
@@ -26,8 +31,12 @@ public class AssetController {
     }
 
     @GetMapping
-    public ResponseEntity<List<AssetResponse>> getAllAssets() {
-        return ResponseEntity.ok(assetService.getAllAssets());
+    public ResponseEntity<PagedResponse<AssetResponse>> getAllAssets(
+            @RequestParam(defaultValue = "0") @Min(0) int page,
+            @RequestParam(defaultValue = "10") @Min(1) @Max(100) int size
+    ) {
+        Pageable pageable = PageRequest.of(page, size);
+        return ResponseEntity.ok(PagedResponse.fromPage(assetService.getAllAssets(pageable)));
     }
 
     @GetMapping("/{id}")
