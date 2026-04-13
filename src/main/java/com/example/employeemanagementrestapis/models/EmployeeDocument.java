@@ -19,9 +19,8 @@ import java.util.UUID;
 public class EmployeeDocument {
 
     @Id
-    @GeneratedValue
-    @UuidGenerator
-    @Column(updatable = false, nullable = false)
+    @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(updatable = false, nullable = false, columnDefinition = "uuid")
     private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY)
