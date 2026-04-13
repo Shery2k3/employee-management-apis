@@ -7,6 +7,7 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -26,6 +27,7 @@ public class UserController {
 
     // GET /api/user/
     @GetMapping("/")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<PagedResponse<UserResponse>> getAllUsers(
             @RequestParam(defaultValue = "0") @Min(0) int page,
             @RequestParam(defaultValue = "10") @Min(1) @Max(100) int size

@@ -9,6 +9,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -85,6 +87,18 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleUnreadableMessage(
             HttpMessageNotReadableException ex, HttpServletRequest request) {
         return buildResponse(HttpStatus.BAD_REQUEST, "Malformed JSON request or invalid enum/date value.", request);
+    }
+
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<ErrorResponse> handleAuthenticationException(
+            AuthenticationException ex, HttpServletRequest request) {
+        return buildResponse(HttpStatus.UNAUTHORIZED, "Invalid credentials or authentication token.", request);
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ErrorResponse> handleAccessDeniedException(
+            AccessDeniedException ex, HttpServletRequest request) {
+        return buildResponse(HttpStatus.FORBIDDEN, "You do not have permission to access this resource.", request);
     }
 
     @ExceptionHandler(org.springframework.web.servlet.resource.NoResourceFoundException.class)

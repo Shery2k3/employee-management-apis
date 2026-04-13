@@ -1,9 +1,9 @@
 package com.example.employeemanagementrestapis.controllers;
 
+import com.example.employeemanagementrestapis.dtos.auth.AuthResponse;
 import com.example.employeemanagementrestapis.dtos.auth.AuthRequest;
-import com.example.employeemanagementrestapis.dtos.auth.UserResponse;
-import com.example.employeemanagementrestapis.models.User;
 import com.example.employeemanagementrestapis.services.AuthService;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -22,18 +22,14 @@ public class AuthController {
 
     // POST /api/auth/signup
     @PostMapping("/signup")
-    public ResponseEntity<UserResponse> register(@RequestBody AuthRequest request) {
-        User newUser = authService.registerUser(request.email(), request.password());
-
-        return ResponseEntity.status(HttpStatus.CREATED).body(UserResponse.from(newUser));
+    public ResponseEntity<AuthResponse> register(@Valid @RequestBody AuthRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(authService.register(request));
     }
 
     // POST /api/auth/login
     @PostMapping("/login")
-    public ResponseEntity<UserResponse> login(@RequestBody AuthRequest request) {
-        User user = authService.authenticateUser(request.email(), request.password());
-
-        return ResponseEntity.status(HttpStatus.OK).body(UserResponse.from(user));
+    public ResponseEntity<AuthResponse> login(@Valid @RequestBody AuthRequest request) {
+        return ResponseEntity.status(HttpStatus.OK).body(authService.login(request));
     }
 
 }
