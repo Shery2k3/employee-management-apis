@@ -8,7 +8,6 @@ import com.example.employeemanagementrestapis.models.EmployeeDocument;
 import com.example.employeemanagementrestapis.models.enums.DocType;
 import com.example.employeemanagementrestapis.repositories.EmployeeDocumentRepository;
 import com.example.employeemanagementrestapis.repositories.EmployeeRepository;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -20,14 +19,12 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.UUID;
 
 @Service
 public class DocumentService {
-    private final Path uploadDir;
-    private final String uploadDirConfig;
+    private final S3Service s3Service;
 
     private static final long MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
     private static final List<String> ALLOWED_MIME_TYPES = List.of(
@@ -44,20 +41,10 @@ public class DocumentService {
 
     public DocumentService(
             EmployeeRepository employeeRepository,
-            EmployeeDocumentRepository employeeDocumentRepository,
-            @Value("${app.file.upload-dir}") String uploadDir) {
+            EmployeeDocumentRepository employeeDocumentRepository, S3Service s3Service) {
         this.employeeRepository = employeeRepository;
         this.employeeDocumentRepository = employeeDocumentRepository;
-        this.uploadDirConfig = uploadDir;
-        this.uploadDir = Paths.get(uploadDir).toAbsolutePath().normalize();
-
-        // Creating the upload directory here if it doesnt exist
-        try {
-            Files.createDirectories(this.uploadDir);
-        } catch (Exception e) {
-            throw new FileStorageException("Could not create the directory: " + this.uploadDir, e);
-        }
-
+        this.s3Service = s3Service;
     }
 
     @Transactional
@@ -74,23 +61,15 @@ public class DocumentService {
         // Using UUID with original filenames to avoid overwrites
         String uniqueFileName = UUID.randomUUID() + "_" + sanitizedFileName;
 
-        try {
-            // Copying the file to our upload dir, while simultaneously creating an entry in the EmployeeDocument
-            Path targetLocation = this.uploadDir.resolve(uniqueFileName);
-            Files.copy(file.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
+        String fileUrl = s3Service.uploadFile(uniqueFileName, file);
 
-            EmployeeDocument document = EmployeeDocument.builder().
-                    employee(employee).
-                    docType(docType)
-                    .fileUrl(this.uploadDirConfig + "/" + uniqueFileName)
-                    .build();
+        EmployeeDocument document = EmployeeDocument.builder().
+                employee(employee).
+                docType(docType)
+                .fileUrl(fileUrl)
+                .build();
 
-            return employeeDocumentRepository.save(document);
-
-        } catch (IOException e) {
-            throw new FileStorageException("Could not store file " + sanitizedFileName);
-
-        }
+        return employeeDocumentRepository.save(document);
     }
 
     public Page<EmployeeDocument> getDocumentsByEmployeeId(Long employeeId, Pageable pageable) {

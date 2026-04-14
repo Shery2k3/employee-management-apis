@@ -25,3 +25,8 @@ spring:
 app:
   file:
     upload-dir: uploads/documents
+
+aws:
+  s3:
+    bucket-name: employee-management-spring
+    region: us-east-1
