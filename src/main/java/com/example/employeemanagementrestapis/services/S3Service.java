@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 @Service
@@ -32,6 +33,19 @@ public class S3Service {
             return String.format("https://%s.s3.amazonaws.com/%s", bucketName, uniqueFileName);
         } catch (Exception e) {
             throw new FileStorageException("Failed to upload file to S3: " + uniqueFileName, e);
+        }
+    }
+
+    public void deleteFile(String fileKey) {
+        try {
+            DeleteObjectRequest deleteObjectRequest = DeleteObjectRequest.builder()
+                    .bucket(bucketName)
+                    .key(fileKey)
+                    .build();
+
+            s3Client.deleteObject(deleteObjectRequest);
+        } catch (Exception e) {
+            throw new FileStorageException("Failed to delete file from S3: " + fileKey, e);
         }
     }
 }

@@ -89,15 +89,43 @@ public class DocumentService {
         EmployeeDocument document = employeeDocumentRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Document not found with id: " + id));
 
-        // Delete physical file
-        try {
-            Path filePath = Paths.get(document.getFileUrl()).toAbsolutePath().normalize();
-            Files.deleteIfExists(filePath);
-        } catch (IOException e) {
-            throw new FileStorageException("Could not delete file for document: " + id, e);
+        // Delete from S3
+        String fileUrl = document.getFileUrl();
+        if (fileUrl != null && fileUrl.contains(".amazonaws.com/")) {
+            String fileKey = fileUrl.substring(fileUrl.lastIndexOf(".amazonaws.com/") + 15);
+            s3Service.deleteFile(fileKey);
         }
 
         employeeDocumentRepository.delete(document);
+    }
+
+    @Transactional
+    public EmployeeDocument updateDocument(UUID id, MultipartFile file, DocType docType) {
+        EmployeeDocument document = employeeDocumentRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Document not found with id: " + id));
+
+        if (docType != null) {
+            document.setDocType(docType);
+        }
+
+        if (file != null && !file.isEmpty()) {
+            validateFile(file);
+
+            // Delete the old file from S3 if it exists
+            String oldFileUrl = document.getFileUrl();
+            if (oldFileUrl != null && oldFileUrl.contains(".amazonaws.com/")) {
+                String oldFileKey = oldFileUrl.substring(oldFileUrl.lastIndexOf(".amazonaws.com/") + 15);
+                s3Service.deleteFile(oldFileKey);
+            }
+
+            String sanitizedFileName = sanitizeFileName(file.getOriginalFilename());
+            String uniqueFileName = UUID.randomUUID() + "_" + sanitizedFileName;
+            String newFileUrl = s3Service.uploadFile(uniqueFileName, file);
+
+            document.setFileUrl(newFileUrl);
+        }
+
+        return employeeDocumentRepository.save(document);
     }
 
     // Private helpers

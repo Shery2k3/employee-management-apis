@@ -64,6 +64,17 @@ public class DocumentController {
         return ResponseEntity.ok(DocumentResponse.from(doc));
     }
 
+    // PUT /api/document/{id}
+    @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<DocumentResponse> updateDocument(
+            @PathVariable UUID id,
+            @RequestParam(value = "file", required = false) MultipartFile file,
+            @RequestParam(value = "docType", required = false) DocType docType
+    ) {
+        EmployeeDocument updatedDoc = documentService.updateDocument(id, file, docType);
+        return ResponseEntity.ok(DocumentResponse.from(updatedDoc));
+    }
+
     // DELETE /api/document/{id}
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteDocument(
