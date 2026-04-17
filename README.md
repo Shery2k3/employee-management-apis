@@ -1,128 +1,201 @@
-# Employee Management System
+# Employee Management REST APIs
 
-A REST API built with Java and Spring Boot for managing core human resources and administrative operations. The system
-consolidates personnel tracking, attendance, leave management, asset assignment, and document storage into a single
-unified backend.
+A Spring Boot backend for HR and administration workflows including employee records, attendance, leave, departments,
+assets, users, and employee document handling.
 
 ## Overview
 
-Organizations rely on consistent, auditable records for their people and resources. This application addresses that need
-by providing a structured backend that enforces role based access control across all operations, ensuring that sensitive
-data is only accessible to authorized personnel.
+The project is built with Java 21 and Spring Boot. It uses PostgreSQL for persistence, Flyway for schema versioning,
+Redis for caching, and AWS S3 for document file storage. API contracts are documented through OpenAPI/Swagger.
 
-The codebase is written entirely in Java 17 using the Spring Framework, with Spring Data JPA handling all persistence
-logic. Maven manages the build lifecycle and dependency resolution.
 
-## Features
+## Tech Stack
 
-**Personnel Management**
-Register new employees, maintain their personal and departmental records, and query the full organizational structure
-through a clean REST interface.
+- Java 21
+- Spring Boot 4.0.3
+- Spring Web MVC
+- Spring Data JPA
+- Spring Security
+- Bean Validation
+- PostgreSQL
+- Flyway
+- Redis + Spring Cache
+- AWS SDK v2 (S3)
+- springdoc-openapi (Swagger UI)
+- Maven
 
-**Attendance Tracking**
-Log daily entry and exit timestamps per employee and derive working hours from those records for payroll or compliance
-purposes.
+## Project Highlights
 
-**Leave Management**
-Employees submit time off requests through the API. Managers review and approve or reject those requests, and the system
-automatically adjusts each employee's leave balance accordingly.
+- DTO-first API layer organized by domain packages (`auth`, `employee`, `department`, `asset`, `leave`, `attendance`,
+  `document`, `common`).
+- Paginated responses via a shared `PagedResponse<T>` DTO.
+- Department reads cached in Redis with cache eviction on writes.
+- Documents validated (size/type), sanitized, stored in S3, and linked in DB.
+- Flyway migration file initializes core HR schema.
 
-**Asset Assignment**
-Track company owned equipment such as laptops and mobile devices. Each asset record captures its current condition, the
-employee it is assigned to, and its full assignment history.
+## Prerequisites
 
-**Document Storage**
-Upload and retrieve employee documents such as contracts or identification records, stored securely and scoped to the
-relevant employee.
+- Java 21+
+- PostgreSQL running locally (default: `localhost:5432`)
+- Redis running locally (default: `localhost:6379`)
+- AWS credentials available to the default AWS provider chain (for S3 operations)
 
-**Authentication**
-All protected endpoints require a valid access token. Tokens are issued on login and must accompany subsequent requests.
+## Configuration
 
-## Database
+Main config is in `src/main/resources/application.yml` and profile overrides in
+`src/main/resources/application-local.yml`.
 
-The application uses H2 as its database engine. H2 is a lightweight, Java native relational database that runs inside
-the application process, removing the need for a separately installed database server during development or testing.
+Important properties:
 
-By default, in memory databases are discarded when the application shuts down. This application sidesteps that
-limitation by configuring H2 in embedded file mode. Rather than storing data purely in RAM, H2 writes its data to a file
-on disk at a path specified in the application properties. The result is a database that behaves like any other
-relational engine from the application's perspective, starts up instantly with no external dependencies, and retains all
-data across restarts.
+```yaml
+spring:
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/employee_management_db}
+    username: ${DB_USERNAME:employee_app_user}
+    password: ${DB_PASSWORD}
+  flyway:
+    enabled: true
 
-To configure this, the `spring.datasource.url` property in `src/main/resources/application.properties` should follow
-this pattern:
-
-```
-spring.datasource.url=jdbc:h2:file:./data/emsdb
-spring.datasource.driver-class-name=org.h2.Driver
-spring.datasource.username=sa
-spring.datasource.password=
-spring.jpa.hibernate.ddl-auto=update
-```
-
-This tells H2 to persist all data to a file named `emsdb` in a `data` directory relative to the project root. The
-`ddl-auto=update` setting ensures the schema evolves alongside any entity changes without wiping existing records.
-
-The H2 web console can be enabled during development for direct SQL inspection:
-
-```
-spring.h2.console.enabled=true
-spring.h2.console.path=/h2-console
+aws:
+  s3:
+    bucket-name: employee-management-spring
+    region: us-east-1
 ```
 
-Once running, the console is accessible at `http://localhost:8080/h2-console`.
+Redis defaults are configured in `application-local.yml`:
 
-## Running the Application
+```yaml
+spring:
+  data:
+    redis:
+      host: localhost
+      port: 6379
+```
 
-Java 17 or higher must be installed. From the project root, build the application using the included Maven wrapper:
+## Database and Migrations
+
+- Primary database: PostgreSQL
+- Migration tool: Flyway
+- Initial schema script: `src/main/resources/db/migration/V1__Initial_Schema.sql`
+- JPA mode: `ddl-auto: validate`
+
+Create the database before first run:
+
+```sql
+CREATE DATABASE employee_management_db;
+```
+
+Flyway applies migrations automatically at startup.
+
+## Run Locally
+
+Build:
 
 ```bash
 ./mvnw clean install
 ```
 
-Then start the application:
+Run:
 
 ```bash
 ./mvnw spring-boot:run
 ```
 
-The server starts on port 8080 by default. All configurable values including the database path, server port, and token
-secrets are managed through `src/main/resources/application.properties`.
+On Windows PowerShell, you can also use:
+
+```powershell
+.\mvnw.cmd clean install
+.\mvnw.cmd spring-boot:run
+```
+
+Default app URL: `http://localhost:8080`
+
+## API Documentation
+
+- Swagger UI: `http://localhost:8080/swagger-ui.html`
+- Alternate UI path: `http://localhost:8080/swagger-ui/index.html`
 
 ## API Reference
 
-### Authentication
+### Auth
 
-| Method | Endpoint          | Description                                      |
-|--------|-------------------|--------------------------------------------------|
-| POST   | `/api/auth/login` | Authenticates a user and returns an access token |
+| Method | Endpoint           | Description |
+|--------|--------------------|-------------|
+| POST   | `/api/auth/signup` | Register user |
+| POST   | `/api/auth/login`  | Login (currently returns user payload, not JWT) |
 
-### Employees
+### Employee
 
-| Method | Endpoint         | Description                                |
-|--------|------------------|--------------------------------------------|
-| GET    | `/api/employees` | Returns a list of all registered employees |
-| POST   | `/api/employees` | Creates a new employee record              |
+| Method | Endpoint                               | Description |
+|--------|----------------------------------------|-------------|
+| GET    | `/api/employee/?page=0&size=10`        | List employees (paginated) |
+| POST   | `/api/employee/onboard`                | Onboard employee |
+| PATCH  | `/api/employee/{id}/assign-department` | Assign/clear department |
+| PATCH  | `/api/employee/{id}/assign-manager`    | Assign/clear manager |
+| GET    | `/api/employee/{id}/subordinates?page=0&size=10` | List subordinates |
+
+### Department
+
+| Method | Endpoint                                        | Description |
+|--------|-------------------------------------------------|-------------|
+| POST   | `/api/department/`                              | Create department |
+| GET    | `/api/department/?page=0&size=10`               | List departments (cached, paginated) |
+| GET    | `/api/department/{id}/employees?page=0&size=10` | List department employees |
 
 ### Assets
 
-| Method | Endpoint      | Description                                             |
-|--------|---------------|---------------------------------------------------------|
-| GET    | `/api/assets` | Lists all assets with their current status and assignee |
-| POST   | `/api/assets` | Registers a new asset in the inventory                  |
+| Method | Endpoint                  | Description |
+|--------|---------------------------|-------------|
+| POST   | `/api/assets`             | Create asset |
+| GET    | `/api/assets?page=0&size=10` | List assets (paginated) |
+| GET    | `/api/assets/{id}`        | Get asset by id |
+| PUT    | `/api/assets/{id}`        | Update asset |
+| DELETE | `/api/assets/{id}`        | Delete asset |
 
-### Leave Requests
+### Leave
 
-| Method | Endpoint                   | Description                                  |
-|--------|----------------------------|----------------------------------------------|
-| POST   | `/api/leaves`              | Submits a new leave request                  |
-| PUT    | `/api/leaves/{id}/approve` | Approves the leave request with the given ID |
+| Method | Endpoint                           | Description |
+|--------|------------------------------------|-------------|
+| POST   | `/api/leave/submit`                | Submit leave request |
+| PATCH  | `/api/leave/{id}/review`           | Approve/reject leave request |
+| GET    | `/api/leave/calendar?page=0&size=10` | List leave calendar entries |
 
-## Technology Stack
+### Attendance
 
-* Java 17
-* Spring Boot
-* Spring Web
-* Spring Data JPA
-* H2 Database (file mode)
-* Maven
+| Method | Endpoint                   | Description |
+|--------|----------------------------|-------------|
+| POST   | `/api/attendance/check-in` | Check in |
+| POST   | `/api/attendance/check-out`| Check out |
+
+### Document
+
+| Method | Endpoint                                         | Description |
+|--------|--------------------------------------------------|-------------|
+| POST   | `/api/document/upload`                           | Upload employee document (multipart) |
+| GET    | `/api/document/employee/{employeeId}?page=0&size=10` | List employee documents |
+| GET    | `/api/document/{id}`                             | Get document metadata |
+| PUT    | `/api/document/{id}`                             | Update file and/or doc type |
+| DELETE | `/api/document/{id}`                             | Delete document and S3 object |
+
+### User
+
+| Method | Endpoint                  | Description |
+|--------|---------------------------|-------------|
+| GET    | `/api/user/?page=0&size=10` | List users (paginated) |
+
+## Document Upload Constraints
+
+- Max file size: 10 MB
+- Allowed types:
+  - PDF (`application/pdf`)
+  - JPEG (`image/jpeg`, `image/jpg`)
+  - PNG (`image/png`)
+  - DOC (`application/msword`)
+  - DOCX (`application/vnd.openxmlformats-officedocument.wordprocessingml.document`)
+
+## Caching
+
+- Caching is enabled globally (`@EnableCaching`).
+- Department list and single department reads are cached in Redis.
+- Department create operation evicts related cache entries.
+- Cache TTL is set to 60 minutes.
