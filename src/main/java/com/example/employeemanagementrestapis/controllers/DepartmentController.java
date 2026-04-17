@@ -44,7 +44,7 @@ public class DepartmentController {
             @RequestParam(defaultValue = "10") @Min(1) @Max(100) int size
     ) {
         Pageable pageable = PageRequest.of(page, size);
-        return ResponseEntity.ok(PagedResponse.fromPage(departmentService.getAllDepartments(pageable)));
+        return ResponseEntity.ok(departmentService.getAllDepartments(pageable));
     }
 
     // GET /api/department/{id}/employees

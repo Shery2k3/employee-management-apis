@@ -1,9 +1,11 @@
 package com.example.employeemanagementrestapis.dtos.common;
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.springframework.data.domain.Page;
 
 import java.util.List;
 
+@JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, property = "@class")
 public record PagedResponse<T>(
         List<T> data,
         int page,
