@@ -19,6 +19,10 @@ public class AuthService {
     }
 
     public User registerUser(String email, String password) {
+        // Duplicate email check
+        if (userRepository.findByEmail(email).isPresent())
+            throw new BusinessLogicException("User with email: " + email + " already exists.");
+
         String hashedPassword = passwordEncoder.encode(password);
 
         // TODO: Use @Builder here later

@@ -20,23 +20,4 @@ public record EmployeeResponse(
         Long managerId,
         String managerName
 ) {
-    public static EmployeeResponse from(Employee employee) {
-        return new EmployeeResponse(
-                employee.getId(),
-                employee.getUser().getEmail(),
-                employee.getFirstName(),
-                employee.getLastName(),
-                employee.getPhone(),
-                employee.getAddress(),
-                employee.getHireDate(),
-                employee.getEmploymentType(),
-                employee.getJobTitle(),
-                employee.getDepartment() != null ? employee.getDepartment().getId() : null,
-                employee.getDepartment() != null ? employee.getDepartment().getName() : null,
-                employee.getManager() != null ? employee.getManager().getId() : null,
-                employee.getManager() != null
-                        ? employee.getManager().getFirstName() + " " + employee.getManager().getLastName()
-                        : null
-        );
-    }
 }

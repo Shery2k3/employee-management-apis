@@ -5,6 +5,7 @@ import com.example.employeemanagementrestapis.dtos.asset.CreateAssetRequest;
 import com.example.employeemanagementrestapis.dtos.asset.UpdateAssetRequest;
 import com.example.employeemanagementrestapis.exceptions.custom.BusinessLogicException;
 import com.example.employeemanagementrestapis.exceptions.custom.ResourceNotFoundException;
+import com.example.employeemanagementrestapis.mapper.AssetMapper;
 import com.example.employeemanagementrestapis.models.Asset;
 import com.example.employeemanagementrestapis.models.Employee;
 import com.example.employeemanagementrestapis.models.enums.AssetStatus;
@@ -19,10 +20,12 @@ import org.springframework.transaction.annotation.Transactional;
 public class AssetService {
     private final AssetRepository assetRepository;
     private final EmployeeRepository employeeRepository;
+    private final AssetMapper assetMapper;
 
-    public AssetService(AssetRepository assetRepository, EmployeeRepository employeeRepository) {
+    public AssetService(AssetRepository assetRepository, EmployeeRepository employeeRepository, AssetMapper assetMapper) {
         this.assetRepository = assetRepository;
         this.employeeRepository = employeeRepository;
+        this.assetMapper = assetMapper;
     }
 
     @Transactional
@@ -34,25 +37,21 @@ public class AssetService {
 
         Employee assignedEmployee = resolveAssignedEmployee(request.assignedEmployeeId(), request.status());
 
-        Asset asset = Asset.builder()
-                .name(request.name().trim())
-                .assetTag(assetTag)
-                .status(request.status())
-                .assignedEmployee(assignedEmployee)
-                .build();
+        Asset asset = assetMapper.toEntity(request);
+        asset.setAssignedEmployee(assignedEmployee);
 
-        return AssetResponse.fromEntity(assetRepository.save(asset));
+        return assetMapper.toResponse(assetRepository.save(asset));
     }
 
     public Page<AssetResponse> getAllAssets(Pageable pageable) {
         return assetRepository.findAll(pageable)
-            .map(AssetResponse::fromEntity);
+                .map(assetMapper::toResponse);
     }
 
     public AssetResponse getAssetById(Long id) {
         Asset asset = assetRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Asset not found with id: " + id));
-        return AssetResponse.fromEntity(asset);
+        return assetMapper.toResponse(asset);
     }
 
     @Transactional
@@ -62,11 +61,10 @@ public class AssetService {
 
         Employee assignedEmployee = resolveAssignedEmployee(request.assignedEmployeeId(), request.status());
 
-        asset.setName(request.name().trim());
-        asset.setStatus(request.status());
+        assetMapper.updateEntityFromRequest(request, asset);
         asset.setAssignedEmployee(assignedEmployee);
 
-        return AssetResponse.fromEntity(assetRepository.save(asset));
+        return assetMapper.toResponse(assetRepository.save(asset));
     }
 
     @Transactional

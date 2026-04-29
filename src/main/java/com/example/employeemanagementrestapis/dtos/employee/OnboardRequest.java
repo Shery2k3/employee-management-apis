@@ -16,6 +16,7 @@ public record OnboardRequest(
         @NotNull LocalDate hireDate,
         @NotNull EmployeeType employmentType,
         @NotBlank String jobTitle,
-        Long departmentId, Long managerId
+        Long departmentId,
+        Long managerId
 ) {
 }

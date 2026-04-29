@@ -4,6 +4,7 @@ import com.example.employeemanagementrestapis.dtos.common.PagedResponse;
 import com.example.employeemanagementrestapis.dtos.department.CreateDepartmentRequest;
 import com.example.employeemanagementrestapis.dtos.department.DepartmentResponse;
 import com.example.employeemanagementrestapis.dtos.employee.EmployeeResponse;
+import com.example.employeemanagementrestapis.mapper.DepartmentMapper;
 import com.example.employeemanagementrestapis.models.Department;
 import com.example.employeemanagementrestapis.services.DepartmentService;
 import com.example.employeemanagementrestapis.services.EmployeeService;
@@ -22,10 +23,12 @@ import org.springframework.web.bind.annotation.*;
 public class DepartmentController {
     private final DepartmentService departmentService;
     private final EmployeeService employeeService;
+    private final DepartmentMapper departmentMapper;
 
-    public DepartmentController(DepartmentService departmentService, EmployeeService employeeService) {
+    public DepartmentController(DepartmentService departmentService, EmployeeService employeeService, DepartmentMapper departmentMapper) {
         this.departmentService = departmentService;
         this.employeeService = employeeService;
+        this.departmentMapper = departmentMapper;
     }
 
     // POST /api/department/
@@ -34,7 +37,7 @@ public class DepartmentController {
             @RequestBody CreateDepartmentRequest request) {
 
         Department dept = departmentService.createDepartment(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(DepartmentResponse.from(dept));
+        return ResponseEntity.status(HttpStatus.CREATED).body(departmentMapper.toResponse(dept));
     }
 
     // GET /api/department/

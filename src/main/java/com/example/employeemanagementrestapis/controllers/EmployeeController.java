@@ -5,6 +5,7 @@ import com.example.employeemanagementrestapis.dtos.employee.AssignDepartmentRequ
 import com.example.employeemanagementrestapis.dtos.employee.AssignManagerRequest;
 import com.example.employeemanagementrestapis.dtos.employee.EmployeeResponse;
 import com.example.employeemanagementrestapis.dtos.employee.OnboardRequest;
+import com.example.employeemanagementrestapis.mapper.EmployeeMapper;
 import com.example.employeemanagementrestapis.models.Employee;
 import com.example.employeemanagementrestapis.services.EmployeeService;
 import jakarta.validation.constraints.Max;
@@ -21,9 +22,11 @@ import org.springframework.web.bind.annotation.*;
 @Validated
 public class EmployeeController {
     private final EmployeeService employeeService;
+    private final EmployeeMapper employeeMapper;
 
-    public EmployeeController(EmployeeService employeeService) {
+    public EmployeeController(EmployeeService employeeService, EmployeeMapper employeeMapper) {
         this.employeeService = employeeService;
+        this.employeeMapper = employeeMapper;
     }
 
     // GET /api/employee/
@@ -40,7 +43,7 @@ public class EmployeeController {
     @PostMapping("/onboard")
     public ResponseEntity<EmployeeResponse> onboardEmployee(@RequestBody OnboardRequest request) {
         Employee employee = employeeService.onboardEmployee(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(EmployeeResponse.from(employee));
+        return ResponseEntity.status(HttpStatus.CREATED).body(employeeMapper.toResponse(employee));
     }
 
     // PATCH /api/employee/{id}/assign-department
@@ -49,7 +52,7 @@ public class EmployeeController {
             @PathVariable Long id,
             @RequestBody AssignDepartmentRequest request) {
         Employee employee = employeeService.assignDepartment(id, request.departmentId());
-        return ResponseEntity.ok(EmployeeResponse.from(employee));
+        return ResponseEntity.ok(employeeMapper.toResponse(employee));
     }
 
     // PATCH /api/employee/{id}/assign-manager
@@ -58,7 +61,7 @@ public class EmployeeController {
             @PathVariable Long id,
             @RequestBody AssignManagerRequest request) {
         Employee employee = employeeService.assignManager(id, request.managerId());
-        return ResponseEntity.ok(EmployeeResponse.from(employee));
+        return ResponseEntity.ok(employeeMapper.toResponse(employee));
     }
 
     // GET /api/employee/{id}/subordinates

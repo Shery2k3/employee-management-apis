@@ -5,6 +5,7 @@ import com.example.employeemanagementrestapis.dtos.leave.ReviewLeaveRequest;
 import com.example.employeemanagementrestapis.dtos.leave.SubmitLeaveRequest;
 import com.example.employeemanagementrestapis.exceptions.custom.BusinessLogicException;
 import com.example.employeemanagementrestapis.exceptions.custom.ResourceNotFoundException;
+import com.example.employeemanagementrestapis.mapper.LeaveMapper;
 import com.example.employeemanagementrestapis.models.*;
 import com.example.employeemanagementrestapis.models.enums.LeaveStatus;
 import com.example.employeemanagementrestapis.repositories.*;
@@ -22,17 +23,19 @@ public class LeaveService {
     private final LeaveBalanceRepository leaveBalanceRepository;
     private final EmployeeRepository employeeRepository;
     private final LeaveBalanceService leaveBalanceService;
+    private final LeaveMapper leaveMapper;
 
     public LeaveService(
             LeaveRequestRepository leaveRequestRepository,
             LeaveBalanceRepository leaveBalanceRepository,
             EmployeeRepository employeeRepository,
-            LeaveBalanceService leaveBalanceService
+            LeaveBalanceService leaveBalanceService, LeaveMapper leaveMapper
     ) {
         this.leaveRequestRepository = leaveRequestRepository;
         this.leaveBalanceRepository = leaveBalanceRepository;
         this.employeeRepository = employeeRepository;
         this.leaveBalanceService = leaveBalanceService;
+        this.leaveMapper = leaveMapper;
     }
 
     @Transactional
@@ -69,16 +72,11 @@ public class LeaveService {
             throw new BusinessLogicException("Not enough leave balance. Remaining: " + balance.getRemainingDays());
         }
 
-        LeaveRequest leaveRequest = LeaveRequest.builder()
-                .employee(employee)
-                .leaveType(request.leaveType())
-                .startDate(request.startDate())
-                .endDate(request.endDate())
-                .reason(request.reason())
-                .leaveStatus(LeaveStatus.PENDING)
-                .build();
+        LeaveRequest leaveRequest = leaveMapper.toEntity(request);
+        leaveRequest.setEmployee(employee);
+        leaveRequest.setLeaveStatus(LeaveStatus.PENDING);
 
-        return LeaveResponse.fromEntity(leaveRequestRepository.save(leaveRequest));
+        return leaveMapper.toResponse(leaveRequestRepository.save(leaveRequest));
     }
 
     @Transactional
@@ -117,11 +115,11 @@ public class LeaveService {
             leaveBalanceRepository.save(balance);
         }
 
-        return LeaveResponse.fromEntity(leaveRequestRepository.save(leaveRequest));
+        return leaveMapper.toResponse(leaveRequestRepository.save(leaveRequest));
     }
 
     public Page<LeaveResponse> getAllRequests(Pageable pageable) {
         return leaveRequestRepository.findAll(pageable)
-                .map(LeaveResponse::fromEntity);
+                .map(leaveMapper::toResponse);
     }
 }

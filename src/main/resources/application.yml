@@ -30,3 +30,15 @@ aws:
   s3:
     bucket-name: employee-management-spring
     region: us-east-1
+
+management:
+  endpoint:
+    health:
+      show-details: always
+  endpoints:
+    web:
+      exposure:
+        include: "health,info,metrics,env,loggers,beans,mappings"
+  info:
+    env:
+      enabled: true

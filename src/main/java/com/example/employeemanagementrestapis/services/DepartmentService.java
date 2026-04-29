@@ -5,6 +5,7 @@ import com.example.employeemanagementrestapis.dtos.department.CreateDepartmentRe
 import com.example.employeemanagementrestapis.dtos.department.DepartmentResponse;
 import com.example.employeemanagementrestapis.exceptions.custom.BusinessLogicException;
 import com.example.employeemanagementrestapis.exceptions.custom.ResourceNotFoundException;
+import com.example.employeemanagementrestapis.mapper.DepartmentMapper;
 import com.example.employeemanagementrestapis.models.Department;
 import com.example.employeemanagementrestapis.repositories.DepartmentRepository;
 import org.springframework.cache.annotation.CacheEvict;
@@ -18,9 +19,11 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 public class DepartmentService {
     private final DepartmentRepository departmentRepository;
+    private final DepartmentMapper departmentMapper;
 
-    public DepartmentService(DepartmentRepository departmentRepository) {
+    public DepartmentService(DepartmentRepository departmentRepository, DepartmentMapper departmentMapper) {
         this.departmentRepository = departmentRepository;
+        this.departmentMapper = departmentMapper;
     }
 
     @Transactional
@@ -37,7 +40,7 @@ public class DepartmentService {
     // Redis bucket "departments", which stores the paginated list
     @Cacheable(value = "departments", key = "'page_' + #pageable.pageNumber + 'size_' + #pageable.pageSize")
     public PagedResponse<DepartmentResponse> getAllDepartments(Pageable pageable) {
-        Page<DepartmentResponse> page = departmentRepository.findAll(pageable).map(DepartmentResponse::from);
+        Page<DepartmentResponse> page = departmentRepository.findAll(pageable).map(departmentMapper::toResponse);
         return PagedResponse.fromPage(page);
     }
 

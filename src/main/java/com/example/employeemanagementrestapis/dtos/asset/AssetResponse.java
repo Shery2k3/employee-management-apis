@@ -10,9 +10,4 @@ public record AssetResponse(
         Long id, String name, String assetTag, AssetStatus status,
         EmployeeSummary assignedEmployee, LocalDateTime createdAt, LocalDateTime updatedAt
 ) {
-    public static AssetResponse fromEntity(Asset asset) {
-        EmployeeSummary summary = asset.getAssignedEmployee() == null ? null :
-                new EmployeeSummary(asset.getAssignedEmployee().getId(), asset.getAssignedEmployee().getFirstName(), asset.getAssignedEmployee().getLastName());
-        return new AssetResponse(asset.getId(), asset.getName(), asset.getAssetTag(), asset.getStatus(), summary, asset.getCreatedAt(), asset.getUpdatedAt());
-    }
 }

@@ -4,35 +4,43 @@ import com.example.employeemanagementrestapis.dtos.employee.OnboardRequest;
 import com.example.employeemanagementrestapis.dtos.employee.EmployeeResponse;
 import com.example.employeemanagementrestapis.exceptions.custom.BusinessLogicException;
 import com.example.employeemanagementrestapis.exceptions.custom.ResourceNotFoundException;
+import com.example.employeemanagementrestapis.mapper.EmployeeMapper;
 import com.example.employeemanagementrestapis.models.Department;
 import com.example.employeemanagementrestapis.models.Employee;
 import com.example.employeemanagementrestapis.models.User;
 import com.example.employeemanagementrestapis.repositories.DepartmentRepository;
 import com.example.employeemanagementrestapis.repositories.EmployeeRepository;
+import com.example.employeemanagementrestapis.repositories.UserRepository;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Optional;
 
 @Service
 public class EmployeeService {
     private final EmployeeRepository employeeRepository;
     private final DepartmentRepository departmentRepository;
     private final AuthService authService;
+    private final EmployeeMapper employeeMapper;
 
-    public EmployeeService(EmployeeRepository employeeRepository, DepartmentRepository departmentRepository, AuthService authService) {
+    public EmployeeService(EmployeeRepository employeeRepository, DepartmentRepository departmentRepository, AuthService authService, EmployeeMapper employeeMapper, UserRepository userRepository) {
         this.employeeRepository = employeeRepository;
         this.departmentRepository = departmentRepository;
         this.authService = authService;
+        this.employeeMapper = employeeMapper;
     }
 
     public Employee saveEmployee(Employee employee) {
         return employeeRepository.save(employee);
     }
 
+    @Cacheable(value = "employees", key = "'page_' + #pageable.pageNumber + 'size_' + #pageable.pageSize")
     public Page<EmployeeResponse> getAllEmployees(Pageable pageable) {
         return employeeRepository.findAll(pageable)
-                .map(EmployeeResponse::from);
+                .map(employeeMapper::toResponse);
     }
 
     @Transactional
@@ -53,18 +61,10 @@ public class EmployeeService {
                     .orElseThrow(() -> new ResourceNotFoundException("Manager not found with id: " + request.managerId()));
         }
 
-        Employee employee = Employee.builder()
-                .user(user)
-                .firstName(request.firstName())
-                .lastName(request.lastName())
-                .phone(request.phone())
-                .address(request.address())
-                .hireDate(request.hireDate())
-                .employmentType(request.employmentType())
-                .jobTitle(request.jobTitle())
-                .department(department)
-                .manager(manager)
-                .build();
+        Employee employee = employeeMapper.toEntity(request);
+        employee.setManager(manager);
+        employee.setUser(user);
+        employee.setDepartment(department);
 
         return employeeRepository.save(employee);
     }
@@ -110,12 +110,12 @@ public class EmployeeService {
             throw new ResourceNotFoundException("Employee not found with id: " + managerId);
         }
         return employeeRepository.findByManagerId(managerId, pageable)
-                .map(EmployeeResponse::from);
+                .map(employeeMapper::toResponse);
     }
 
     public Page<EmployeeResponse> getEmployeesByDepartment(Long departmentId, Pageable pageable) {
         return employeeRepository.findByDepartmentId(departmentId, pageable)
-                .map(EmployeeResponse::from);
+                .map(employeeMapper::toResponse);
     }
 
 }
