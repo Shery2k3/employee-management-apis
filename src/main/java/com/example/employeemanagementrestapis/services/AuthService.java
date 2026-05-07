@@ -25,12 +25,11 @@ public class AuthService {
 
         String hashedPassword = passwordEncoder.encode(password);
 
-        // TODO: Use @Builder here later
-        User newUser = new User();
-
-        newUser.setEmail(email);
-        newUser.setPassword(hashedPassword);
-        newUser.setSystemRole(RoleType.EMPLOYEE);
+        User newUser = User.builder()
+                .email(email)
+                .password(hashedPassword)
+                .systemRole(RoleType.EMPLOYEE)
+                .build();
         return userRepository.save(newUser);
     }
 

@@ -2,6 +2,7 @@ package com.example.employeemanagementrestapis.controllers;
 
 import com.example.employeemanagementrestapis.dtos.attendance.AttendanceResponse;
 import com.example.employeemanagementrestapis.dtos.attendance.CheckInRequest;
+import com.example.employeemanagementrestapis.mapper.AttendanceMapper;
 import com.example.employeemanagementrestapis.models.AttendanceRecord;
 import com.example.employeemanagementrestapis.services.AttendanceService;
 import org.springframework.http.HttpStatus;
@@ -15,20 +16,22 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/attendance")
 public class AttendanceController {
     private final AttendanceService attendanceService;
+    private final AttendanceMapper attendanceMapper;
 
-    public AttendanceController(AttendanceService attendanceService) {
+    public AttendanceController(AttendanceService attendanceService, AttendanceMapper attendanceMapper) {
         this.attendanceService = attendanceService;
+        this.attendanceMapper = attendanceMapper;
     }
 
     @PostMapping("/check-in")
     public ResponseEntity<AttendanceResponse> checkIn(@RequestBody CheckInRequest request) {
         AttendanceRecord record = attendanceService.checkIn(request.employeeId());
-        return ResponseEntity.status(HttpStatus.CREATED).body(AttendanceResponse.from(record));
+        return ResponseEntity.status(HttpStatus.CREATED).body(attendanceMapper.toResponse(record));
     }
 
     @PostMapping("/check-out")
     public ResponseEntity<AttendanceResponse> checkOut(@RequestBody CheckInRequest request) {
         AttendanceRecord record = attendanceService.checkOut(request.employeeId());
-        return ResponseEntity.status(HttpStatus.CREATED).body(AttendanceResponse.from(record));
+        return ResponseEntity.status(HttpStatus.CREATED).body(attendanceMapper.toResponse(record));
     }
 }

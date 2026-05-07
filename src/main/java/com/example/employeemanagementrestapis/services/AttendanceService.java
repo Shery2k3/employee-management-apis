@@ -1,7 +1,9 @@
 package com.example.employeemanagementrestapis.services;
 
+import com.example.employeemanagementrestapis.dtos.attendance.AttendanceResponse;
 import com.example.employeemanagementrestapis.exceptions.custom.BusinessLogicException;
 import com.example.employeemanagementrestapis.exceptions.custom.ResourceNotFoundException;
+import com.example.employeemanagementrestapis.mapper.AttendanceMapper;
 import com.example.employeemanagementrestapis.models.AttendanceRecord;
 import com.example.employeemanagementrestapis.models.Employee;
 import com.example.employeemanagementrestapis.models.enums.AttendanceStatus;
@@ -23,7 +25,7 @@ public class AttendanceService {
     private static final LocalTime SHIFT_START = LocalTime.of(5, 0);
     private static final LocalTime SHIFT_END = LocalTime.of(17, 0);
 
-    public AttendanceService(AttendanceRecordRepository attendanceRecordRepository, EmployeeRepository employeeRepository) {
+    public AttendanceService(AttendanceRecordRepository attendanceRecordRepository, EmployeeRepository employeeRepository, AttendanceMapper attendanceMapper) {
         this.attendanceRecordRepository = attendanceRecordRepository;
         this.employeeRepository = employeeRepository;
     }
