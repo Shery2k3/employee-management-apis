@@ -21,9 +21,4 @@ public record LeaveResponse(
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 ) {
-//    public static LeaveResponse fromEntity(LeaveRequest req) {
-//        EmployeeSummary emp = new EmployeeSummary(req.getEmployee().getId(), req.getEmployee().getFirstName(), req.getEmployee().getLastName());
-//        EmployeeSummary rev = req.getReviewer() == null ? null : new EmployeeSummary(req.getReviewer().getId(), req.getReviewer().getFirstName(), req.getReviewer().getLastName());
-//        return new LeaveResponse(req.getId(), emp, req.getLeaveType(), req.getStartDate(), req.getEndDate(), req.getReason(), req.getLeaveStatus(), rev, req.getReviewerComments(), req.getCreatedAt(), req.getUpdatedAt());
-//    }
 }

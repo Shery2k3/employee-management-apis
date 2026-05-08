@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.multipart.support.MissingServletRequestPartException;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import java.util.stream.Collectors;
 
@@ -97,6 +99,30 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleNoHandlerFound(
             org.springframework.web.servlet.NoHandlerFoundException ex, HttpServletRequest request) {
         return buildResponse(HttpStatus.NOT_FOUND, "No handler found for " + ex.getHttpMethod() + " " + ex.getRequestURL(), request);
+    }
+
+        // Handle invalid HTTP methods (e.g. sending POST instead of PATCH)
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    public ResponseEntity<ErrorResponse> handleHttpRequestMethodNotSupported(
+            HttpRequestMethodNotSupportedException ex, HttpServletRequest request) {
+        String message = "HTTP method '" + ex.getMethod() + "' is not supported. Supported methods are: " 
+                + (ex.getSupportedHttpMethods() != null ? ex.getSupportedHttpMethods().toString() : "Unknown");
+        return buildResponse(HttpStatus.METHOD_NOT_ALLOWED, message, request);
+    }
+
+    // Handle invalid enum mapping (e.g. passing DONE instead of COMPLETED)
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ErrorResponse> handleMethodArgumentTypeMismatch(
+            MethodArgumentTypeMismatchException ex, HttpServletRequest request) {
+        String message = "Failed to convert value '" + ex.getValue() + "' for parameter '" + ex.getName() + "'.";
+        
+        // Try mapping it gracefully to Enum class details
+        if (ex.getRequiredType() != null && ex.getRequiredType().isEnum()) {
+            message = "Invalid value '" + ex.getValue() + "' for parameter '" + ex.getName() + 
+                      "'. Allowed values: " + java.util.Arrays.toString(ex.getRequiredType().getEnumConstants());
+        }
+        
+        return buildResponse(HttpStatus.BAD_REQUEST, message, request);
     }
 
     // Catch-all
